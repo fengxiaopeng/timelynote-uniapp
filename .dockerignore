@@ -1,0 +1,11 @@
+.git
+node_modules
+dist
+coverage
+.agents
+.cursor
+env/*.local
+private*.key
+*.p12
+*.mobileprovision
+*.log

@@ -1,0 +1,11 @@
+page {
+  --wot-color-theme: #a66d3c;
+  background-color: #faf7f0;
+  color: #3d332b;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+button::after {
+  border: none;
+}
