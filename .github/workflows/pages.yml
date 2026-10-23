@@ -1,0 +1,58 @@
+name: Deploy H5 to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SKIP_OPEN_DEVTOOLS: 'true'
+      HUSKY: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --registry=https://registry.npmjs.org
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Generate types and validate
+        run: pnpm build:mp && pnpm check
+      - name: Build H5 for the Pages base path
+        env:
+          VITE_APP_PUBLIC_BASE: ${{ steps.pages.outputs.base_path }}/
+          VITE_APP_ROUTER_MODE: hash
+        run: pnpm build:h5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/build/h5
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

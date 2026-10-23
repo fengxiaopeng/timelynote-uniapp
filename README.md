@@ -32,6 +32,14 @@ H5 默认地址为 `http://localhost:9000`。微信开发者工具导入开发�
 
 App 构建生成 uni-app 资源，不是可安装的 APK/IPA。将 `dist/dev/app` 或 `dist/build/app` 导入 HBuilderX，继续运行到基座或原生打包；发行前填写自己的 DCloud AppID、包名、签名和所需原生模块配置。
 
+## GitHub Pages 预览
+
+在 GitHub 仓库 **Settings → Pages → Build and deployment → Source** 中选择 **GitHub Actions**。将本仓库的 Pages 工作流提交到 `master` 后，每次推送都会先执行质量检查，再构建并部署 H5；也可以在 **Actions → Deploy H5 to GitHub Pages → Run workflow** 手动触发。
+
+部署成功后，在工作流的 `github-pages` 环境中点击访问链接。未配置自定义域名时，本仓库的默认地址为 `https://fengxiaopeng.github.io/timelynote-uniapp/`，仅在部署成功后可用。后续可直接通过这个链接查看已推送到 `master` 的最新页面，无需本地运行。
+
+工作流从 Pages 设置读取部署子路径，并使用 hash 路由，支持刷新和直接打开页面。Pages 网站内容会公开展示，请勿将私密数据或凭证放入前端；真实后端仍需另行配置。此工作流发布 `master` 的版本，不为每个 PR 创建独立预览。
+
 ## 环境变量
 
 环境文件统一放在 `env/`，沿用 [Vite 的加载规则](https://vite.dev/guide/env-and-mode)：公共 `.env`、本地 `.env.local`、模式 `.env.[mode]`、模式本地 `.env.[mode].local` 依次覆盖，进程环境优先级最高。本地文件已被 Git 忽略，修改后重启开发进程。
