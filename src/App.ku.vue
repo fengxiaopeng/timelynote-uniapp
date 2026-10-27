@@ -1,27 +1,20 @@
 <script setup lang="ts">
+import { onShow } from '@dcloudio/uni-app'
 import { ref } from 'vue'
-import FgTabbar from '@/tabbar/index.vue'
-import { isPageTabbar } from './tabbar/store'
+import { customTabbarList } from '@/tabbar/config'
 import { currRoute } from './utils'
 
-const isCurrentPageTabbar = ref(true)
+const path = ref('pages/index/index')
 onShow(() => {
-  const { path } = currRoute()
-  // “蜡笔小开心”提到本地是 '/pages/index/index'，线上是 '/' 导致线上 tabbar 不见了
-  // 所以这里需要判断一下，如果是 '/' 就当做首页，也要显示 tabbar
-  if (path === '/') {
-    isCurrentPageTabbar.value = true
-  }
-  else {
-    isCurrentPageTabbar.value = isPageTabbar(path)
-  }
+  uni.hideTabBar({ fail: () => {} })
+  const route = currRoute().path.replace(/^\//, '')
+  path.value = route || 'pages/index/index'
 })
 </script>
 
 <template>
   <view>
     <KuRootView />
-
-    <FgTabbar v-if="isCurrentPageTabbar" />
+    <fg-journal-nav v-if="customTabbarList.some(item => item.pagePath === path)" :path="path" />
   </view>
 </template>
