@@ -6,6 +6,7 @@ import NoteCard from './NoteCard.vue'
 
 const props = defineProps<{ items: Note[], summary?: boolean }>()
 const paging = ref<{
+  clear: () => void
   pageReachBottom: () => void
   setLocalPaging: (data: Note[]) => Promise<unknown>
 } | null>(null)
@@ -18,8 +19,10 @@ onReachBottom(() => {
 watch(
   [source, paging],
   () => {
-    if (paging.value)
+    if (paging.value) {
+      paging.value.clear()
       void paging.value.setLocalPaging(source.value)
+    }
   },
   { immediate: true },
 )

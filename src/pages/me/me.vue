@@ -172,6 +172,13 @@ async function discardDraft() {
         偏好用于新建纪念日，已有纪念日保留各自规则。当天提醒为全局偏好。当前版本暂不发送通知。
       </view>
       <view class="section-label mt-7">
+        放在心上的人
+      </view><view class="paper settings-group">
+        <button role="button" class="settings-row" @click="navigate({ url: '/pages/people/index' })">
+          <fg-journal-icon name="heart" /><text class="flex-1">重要的人</text><text class="muted text-3">{{ store.data.people.filter(person => !person.archived).length }} 位 ›</text>
+        </button>
+      </view>
+      <view class="section-label mt-7">
         数据与回忆
       </view><view class="paper settings-group">
         <button role="button" class="settings-row" @click="exportJournal(store.data)">

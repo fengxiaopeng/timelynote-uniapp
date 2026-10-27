@@ -59,6 +59,12 @@ onLoad(async (options) => {
     event.value.reminderTime = store.data.preferences.time
   }
   month.value = event.value.date.slice(0, 7)
+  if (
+    typeof options?.personId === 'string'
+    && store.data.people.some(person => person.id === options.personId)
+  ) {
+    event.value.personIds = [options.personId]
+  }
   initial.value = JSON.stringify(event.value)
   ready.value = true
 })
@@ -116,7 +122,13 @@ async function save() {
     ) {
       return
     }
-    await store.saveEvent({ ...event.value, title: event.value.title.trim() })
+    await store.saveEvent({
+      ...event.value,
+      date: event.value.yearUnknown
+        ? `2000-${event.value.date.slice(5)}`
+        : event.value.date,
+      title: event.value.title.trim(),
+    })
     toast('重要的日子，记下了')
     if (editing.value) {
       back()
@@ -139,12 +151,15 @@ async function save() {
 <template>
   <view class="journal-page editor-page">
     <view class="editor-bar">
-      <button role="button" class="text-button" :disabled="busy" @click="cancel">
+      <button
+        role="button"
+        class="text-button"
+        :disabled="busy"
+        @click="cancel"
+      >
         取消
       </button><text class="serif text-5">
-        {{
-          editing ? "修改纪念日" : "新的纪念日"
-        }}
+        {{ editing ? "修改纪念日" : "新的纪念日" }}
       </text><button
         role="button"
         class="text-button strong"
@@ -162,6 +177,20 @@ async function save() {
         placeholder="比如，我们的结婚纪念日"
         :maxlength="40"
       >
+      <view v-if="event.birthdayPersonId" class="notice mt-4">
+        这是人物资料中的生日，日期修改后两处同步。生日主人的关联始终保留。
+      </view>
+      <view v-if="event.category === '生日'" class="paper settings-row mt-4">
+        <text class="flex-1">只知道月日，不显示年龄</text><switch
+          color="#b44232"
+          :checked="!!event.yearUnknown"
+          @change="event.yearUnknown = $event.detail.value"
+        />
+      </view>
+      <fg-person-picker
+        v-model="event.personIds"
+        :locked-ids="event.birthdayPersonId ? [event.birthdayPersonId] : []"
+      />
       <view class="field-label mt-7">
         这是什么日子
       </view><view class="chips">
@@ -171,6 +200,7 @@ async function save() {
           role="button"
           class="chip"
           :class="{ selected: event.category === category }"
+          :disabled="!!event.birthdayPersonId"
           @click="event.category = category"
         >
           {{ category }}
@@ -179,7 +209,9 @@ async function save() {
       <view class="field-label mt-7">
         选一个日子 · 公历
       </view>
+      <fg-month-day-picker v-if="event.yearUnknown" v-model="event.date" class="paper" />
       <picker
+        v-else
         mode="date"
         :value="event.date"
         start="1900-01-01"
@@ -190,10 +222,14 @@ async function save() {
         "
       >
         <view class="date-picker paper">
-          {{ dateLabel(event.date) }}<text>快速选年 / 月 / 日 ›</text>
+          {{
+            event.yearUnknown
+              ? `${Number(event.date.slice(5, 7))}月${Number(event.date.slice(8))}日 · 年份未填写`
+              : dateLabel(event.date)
+          }}<text>快速选年 / 月 / 日 ›</text>
         </view>
       </picker>
-      <view class="paper calendar mt-3">
+      <view v-if="!event.yearUnknown" class="paper calendar mt-3">
         <view class="flex items-center justify-between">
           <button
             role="button"
@@ -253,6 +289,7 @@ async function save() {
           role="button"
           class="chip"
           :class="{ selected: event.repeat === 'once' }"
+          :disabled="!!event.birthdayPersonId"
           @click="event.repeat = 'once'"
         >
           只此一次
@@ -306,7 +343,12 @@ async function save() {
         placeholder="给这天留一句…"
         :maxlength="2000"
       />
-      <button role="button" class="primary-button my-6" :disabled="busy" @click="save">
+      <button
+        role="button"
+        class="primary-button my-6"
+        :disabled="busy"
+        @click="save"
+      >
         {{ busy ? "正在存下…" : "存下这个日子" }}
       </button>
     </view>

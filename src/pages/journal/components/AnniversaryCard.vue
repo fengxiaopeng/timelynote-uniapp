@@ -35,6 +35,7 @@ defineProps<{
       <view class="mt-2 flex gap-2">
         <text class="category">{{ event.category }}</text><text v-if="event.sample" class="sample-label">示例</text><text v-if="event.pinned" class="sample-label">置顶</text>
       </view>
+      <fg-person-tags :ids="event.personIds" />
     </view>
     <view class="countdown">
       <text class="count-number">{{ Math.abs(countdown(event)) }}</text><text class="count-unit">

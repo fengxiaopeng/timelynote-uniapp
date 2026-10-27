@@ -2,6 +2,7 @@
 import { onShow } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 import { categories, countdown, daysBetween, today } from '@/domain/journal'
+import { peopleText } from '@/domain/people'
 import { useJournalStore } from '@/store/journal'
 import AnniversaryCard from './AnniversaryCard.vue'
 import AnniversaryList from './AnniversaryList.vue'
@@ -14,6 +15,7 @@ const keyword = ref('')
 const searchOpen = ref(false)
 const category = ref('全部')
 const photoOnly = ref(false)
+const selectedPerson = ref('')
 const month = ref('')
 const reminderOpen = ref(false)
 const date = ref(today())
@@ -41,7 +43,8 @@ const matchingEvents = computed(() =>
   store.sortedEvents.filter(
     event =>
       (category.value === '全部' || category.value === event.category)
-      && `${event.title} ${event.description} ${event.category}`.includes(
+      && (!selectedPerson.value || event.personIds?.includes(selectedPerson.value))
+      && `${event.title} ${event.description} ${event.category} ${peopleText(store.data, event.personIds)}`.includes(
         keyword.value.trim(),
       ),
   ),
@@ -56,9 +59,10 @@ const events = computed(() =>
 const notes = computed(() =>
   store.sortedNotes.filter(
     note =>
-      `${note.title} ${note.content} ${note.tags.join(' ')} ${note.place}`.includes(
+      `${note.title} ${note.content} ${note.tags.join(' ')} ${note.place} ${peopleText(store.data, note.personIds)}`.includes(
         keyword.value.trim(),
       )
+      && (!selectedPerson.value || note.personIds?.includes(selectedPerson.value))
       && (!photoOnly.value || note.images.length > 0)
       && (!month.value || note.date.startsWith(month.value)),
   ),
@@ -76,7 +80,10 @@ const upcoming = computed(() =>
 )
 onShow(() => {
   date.value = today()
-  void store.load()
+  void store.load().then(() => {
+    if (!store.data.people.some(person => person.id === selectedPerson.value))
+      selectedPerson.value = ''
+  })
 })
 async function samples() {
   try {
@@ -146,6 +153,7 @@ async function samples() {
       </view>
     </view>
     <view class="journal-content">
+      <fg-person-filter v-if="mode !== 'home' && store.data.people.length" v-model="selectedPerson" />
       <view v-if="searchOpen" class="search-box">
         <fg-journal-icon name="search" /><input
           v-model="keyword"
@@ -164,11 +172,11 @@ async function samples() {
       <view v-if="mode === 'home' && pinned && !keyword" class="warmbar">
         <fg-journal-icon name="heart" /><text>
           {{ pinned.title }}，{{
-            daysBetween(pinned.date, date) >= 0 ? "已经" : "还有"
+            !pinned.yearUnknown && daysBetween(pinned.date, date) >= 0 ? "已经" : "还有"
           }}
         </text><text class="warm-number">
           {{
-            Math.abs(daysBetween(pinned.date, date)).toLocaleString()
+            Math.abs(pinned.yearUnknown ? countdown(pinned, date) : daysBetween(pinned.date, date)).toLocaleString()
           }}
         </text><text>天</text>
       </view>

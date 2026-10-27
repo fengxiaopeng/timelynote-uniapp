@@ -57,5 +57,6 @@ defineProps<{
     >
       <text v-for="tag in note.tags" :key="tag" class="note-tag">{{ tag }}</text><text v-if="note.sample" class="sample-label">示例</text>
     </view>
+    <fg-person-tags :ids="note.personIds" />
   </button>
 </template>

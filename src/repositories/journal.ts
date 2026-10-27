@@ -1,7 +1,7 @@
 import type { JournalData } from '@/domain/journal'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { emptyJournal, validJournal } from '@/domain/journal'
+import { emptyJournal, migrateJournal, validJournal } from '@/domain/journal'
 
 export interface JournalRepository {
   load: (owner: string) => Promise<JournalData>
@@ -21,8 +21,9 @@ const useDatabase = defineStore('timely-journal-v1', () => {
           const data = JSON.parse(raw)
           if (data?.accounts && typeof data.accounts === 'object') {
             for (const [key, value] of Object.entries(data.accounts)) {
-              if ((key === 'guest' || /^1[3-9]\d{9}$/.test(key)) && validJournal(value))
-                accounts[key] = value
+              const migrated = migrateJournal(value)
+              if ((key === 'guest' || /^1[3-9]\d{9}$/.test(key)) && migrated)
+                accounts[key] = migrated
             }
           }
         }

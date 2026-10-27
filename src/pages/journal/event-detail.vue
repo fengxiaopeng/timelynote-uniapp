@@ -65,7 +65,7 @@ async function remove() {
   if (
     !(await confirmAction(
       '删除这个纪念日？',
-      '关联手记会保留，并解除与这个纪念日的关联。删除后无法恢复。',
+      event.value?.birthdayPersonId ? '这也会清空人物资料中的生日。手记和人物本身保留，手记解除纪念日关联。' : '关联手记会保留，并解除与这个纪念日的关联。删除后无法恢复。',
     ))
   ) {
     return
@@ -88,7 +88,7 @@ async function remove() {
         <fg-journal-icon name="chevL" />
       </button><text class="muted text-3">
         {{ event?.category || "纪念日"
-        }}<template v-if="event?.repeat === 'yearly' && anniversaryYear > 0">
+        }}<template v-if="event?.repeat === 'yearly' && !event.yearUnknown && anniversaryYear > 0">
           · {{ anniversaryYear }} {{ event.category === '生日' ? '岁生日' : '周年' }}
         </template>
       </text><button
@@ -128,6 +128,11 @@ async function remove() {
         </view><text v-if="event.sample" class="sample-label mt-3">示例纪念日</text>
       </view>
       <view class="journal-content">
+        <view v-if="event.personIds?.length" class="mb-5">
+          <view class="field-label">
+            一起记得
+          </view><fg-person-tags :ids="event.personIds" />
+        </view>
         <view v-if="event.description" class="event-message">
           “{{ event.description }}”
         </view><view class="section-label">
@@ -151,7 +156,7 @@ async function remove() {
         </view><view v-if="!notes.length" class="small-empty serif">
           这里还没有回忆，<br>为这一天留下第一笔吧。
         </view><view class="muted mt-6 text-center text-3">
-          最初的日子 · {{ event.date }} ·
+          最初的日子 · {{ event.yearUnknown ? `${Number(event.date.slice(5, 7))}月${Number(event.date.slice(8))}日（年份未填写）` : event.date }} ·
           {{ event.repeat === "yearly" ? "每年纪念" : "只此一次" }}
         </view>
       </view>

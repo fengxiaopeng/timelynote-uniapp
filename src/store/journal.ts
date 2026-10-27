@@ -1,8 +1,15 @@
-import type { Anniversary, JournalData, Note } from '@/domain/journal'
+import type {
+  Anniversary,
+  BirthdayInput,
+  JournalData,
+  Note,
+  Person,
+} from '@/domain/journal'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { countdown, emptyJournal, today } from '@/domain/journal'
 import { cloneJournal, journalRepository } from '@/repositories/journal'
+import { removePerson, unlinkEvent, upsertPerson } from '@/domain/people'
 import { useLocalSessionStore } from './local-session'
 
 export const useJournalStore = defineStore('journal', () => {
@@ -37,6 +44,27 @@ export const useJournalStore = defineStore('journal', () => {
   }
   async function saveEvent(event: Anniversary) {
     await update((next) => {
+      event = {
+        ...event,
+        yearUnknown: event.category === '生日' && !!event.yearUnknown,
+      }
+      if (event.yearUnknown)
+        event.date = `2000-${event.date.slice(5)}`
+      if (event.birthdayPersonId) {
+        const person = next.people.find(
+          item => item.id === event.birthdayPersonId,
+        )
+        if (!event.yearUnknown && event.date > today())
+          throw new Error('出生日期不能晚于今天')
+        if (!person || person.birthdayEventId !== event.id)
+          throw new Error('生日关联已改变，请重新打开编辑')
+        event = {
+          ...event,
+          category: '生日',
+          repeat: 'yearly',
+          personIds: [...new Set([...(event.personIds || []), person.id])],
+        }
+      }
       if (event.pinned) {
         next.anniversaries.forEach((item) => {
           item.pinned = false
@@ -61,20 +89,19 @@ export const useJournalStore = defineStore('journal', () => {
     })
   }
   async function deleteEvent(id: string) {
-    await update((next) => {
-      next.anniversaries = next.anniversaries.filter(item => item.id !== id)
-      for (const note of next.notes) {
-        if (note.anniversaryId === id) {
-          note.anniversaryId = ''
-          note.occurrence = ''
-        }
-      }
-      if (next.draft?.anniversaryId === id) {
-        next.draft.anniversaryId = ''
-        next.draft.occurrence = ''
-      }
-    })
+    await update(next => unlinkEvent(next, id))
   }
+  async function savePerson(
+    person: Person,
+    birthday: BirthdayInput | null,
+    clear: 'keep' | 'delete' = 'keep',
+  ) {
+    await update(next => upsertPerson(next, person, birthday, clear))
+  }
+  async function deletePerson(id: string) {
+    await update(next => removePerson(next, id))
+  }
+
   async function deleteNote(id: string) {
     await update((next) => {
       next.notes = next.notes.filter(item => item.id !== id)
@@ -88,9 +115,41 @@ export const useJournalStore = defineStore('journal', () => {
       ) {
         return
       }
+      const samplePeople = [
+        {
+          id: 'sample-person-ning',
+          name: '阿宁',
+          relationship: '伴侣',
+          remark: '示例人物，可编辑或删除',
+          archived: false,
+          birthdayEventId: '',
+        },
+        {
+          id: 'sample-person-mom',
+          name: '妈妈',
+          relationship: '父母',
+          remark: '示例人物，可编辑或删除',
+          archived: false,
+          birthdayEventId: 'sample-birthday',
+        },
+        {
+          id: 'sample-person-child',
+          name: '小满',
+          relationship: '孩子',
+          remark: '示例人物，可编辑或删除',
+          archived: false,
+          birthdayEventId: '',
+        },
+      ]
+      next.people.push(
+        ...samplePeople.filter(
+          person => !next.people.some(item => item.id === person.id),
+        ),
+      )
       next.anniversaries.push(
         {
           id: 'sample-wedding',
+          personIds: ['sample-person-ning'],
           title: '结婚纪念日',
           date: '2018-11-14',
           category: '纪念',
@@ -103,6 +162,8 @@ export const useJournalStore = defineStore('journal', () => {
         },
         {
           id: 'sample-birthday',
+          personIds: ['sample-person-mom'],
+          birthdayPersonId: 'sample-person-mom',
           title: '妈妈生日',
           date: '1968-12-08',
           category: '生日',
@@ -115,6 +176,7 @@ export const useJournalStore = defineStore('journal', () => {
         },
         {
           id: 'sample-child',
+          personIds: ['sample-person-child'],
           title: '小满周岁',
           date: '2027-01-20',
           category: '成长',
@@ -129,6 +191,7 @@ export const useJournalStore = defineStore('journal', () => {
       next.notes.push(
         {
           id: 'sample-sea',
+          personIds: ['sample-person-child', 'sample-person-ning'],
           title: '第一次带小满看海',
           content:
             '她站在浅水里，浪一来就咯咯地笑，小手死死攥着我的食指不肯松开。阿宁在后面举着手机，说别看镜头，看她。\n\n原来幸福，就是把这些小小的瞬间记下来。',
@@ -144,6 +207,7 @@ export const useJournalStore = defineStore('journal', () => {
         },
         {
           id: 'sample-orange',
+          personIds: ['sample-person-ning'],
           title: '他今晚说的一句话',
           content:
             '“我们老了以后，也这样坐着吧。”——说这话时他在剥橘子，头都没抬。我却记了一整晚。',
@@ -159,6 +223,7 @@ export const useJournalStore = defineStore('journal', () => {
         },
         {
           id: 'sample-year',
+          personIds: ['sample-person-ning'],
           title: '第七年，还是同一家面馆',
           content: '老板记得我们，端上来时多加了两个荷包蛋，说“老规矩”。',
           date: '2025-11-14',
@@ -182,6 +247,8 @@ export const useJournalStore = defineStore('journal', () => {
     sortedNotes,
     load,
     update,
+    savePerson,
+    deletePerson,
     saveEvent,
     saveNote,
     deleteEvent,

@@ -45,3 +45,12 @@ describe('本地仓储持久化边界', () => {
     expect(await journalRepository.load('guest')).toEqual(emptyJournal())
   })
 })
+
+it('升级旧版持久化数据时保留账号和记录并补上人物字段', async () => {
+  const legacy = { anniversaries: [], notes: [{ ...blankNote(), content: '旧记录还在' }], draft: null, preferences: emptyJournal().preferences }
+  storage.set('timely-journal-v1', JSON.stringify({ accounts: { guest: legacy } }))
+  boot()
+  const data = await journalRepository.load('guest')
+  expect(data.people).toEqual([])
+  expect(data.notes[0].content).toBe('旧记录还在')
+})

@@ -51,7 +51,16 @@ onLoad(async (options) => {
     if (event) {
       note.value.anniversaryId = event.id
       note.value.occurrence = nextOccurrence(event)
+      note.value.personIds = [...(event.personIds || [])]
     }
+  }
+  if (
+    typeof options?.personId === 'string'
+    && store.data.people.some(person => person.id === options.personId)
+  ) {
+    note.value.personIds = [
+      ...new Set([...(note.value.personIds || []), options.personId]),
+    ]
   }
   initial.value = JSON.stringify(note.value)
   ready.value = true
@@ -62,10 +71,25 @@ function toggleTag(tag: string) {
     note.value.tags.push(tag)
   else note.value.tags.splice(index, 1)
 }
-function link(index: number) {
+async function link(index: number) {
   const event = store.data.anniversaries[index - 1]
   note.value.anniversaryId = event?.id || ''
   note.value.occurrence = event ? nextOccurrence(event) : ''
+  const incoming
+    = event?.personIds?.filter(
+      id => !(note.value.personIds || []).includes(id),
+    ) || []
+  if (
+    incoming.length
+    && (await confirmAction(
+      '一起带入与这个日子有关的人？',
+      '保留手记已经选择的人，并加入纪念日中的人物；后续各自修改互不影响。',
+    ))
+  ) {
+    note.value.personIds = [
+      ...new Set([...(note.value.personIds || []), ...incoming]),
+    ]
+  }
 }
 function photos() {
   chooseLocalPhotos(
@@ -165,9 +189,7 @@ async function save() {
       <button role="button" class="text-button" :disabled="busy" @click="leave">
         稍后
       </button><text class="serif text-5">{{ editing ? "修改手记" : "随手记" }}</text><text class="muted text-3">
-        {{
-          note.date.slice(5).replace("-", " / ")
-        }}
+        {{ note.date.slice(5).replace("-", " / ") }}
       </text>
     </view>
     <view v-if="ready" class="journal-content form-content">
@@ -255,6 +277,7 @@ async function save() {
       <view v-if="linkedEvent" class="notice mt-2">
         关联日期用于整理回忆，不会改变手记的发生日期。
       </view>
+      <fg-person-picker v-model="note.personIds" />
       <view class="field-label mt-6">
         给回忆贴个标签
       </view><view class="chips">
@@ -290,7 +313,12 @@ async function save() {
         placeholder="比如，晴 · 24°C"
         :maxlength="30"
       >
-      <button role="button" class="primary-button my-7" :disabled="busy" @click="save">
+      <button
+        role="button"
+        class="primary-button my-7"
+        :disabled="busy"
+        @click="save"
+      >
         {{ busy ? "正在存下…" : "存下手记" }}
       </button>
     </view>

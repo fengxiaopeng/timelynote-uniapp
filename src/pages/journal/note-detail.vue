@@ -99,7 +99,12 @@ function copy() {
         >
           <fg-journal-icon name="pin" />{{ note.place
           }}<text class="ml-auto">{{ note.weather }}</text>
-        </view><view class="detail-body">
+        </view><view v-if="note.personIds?.length" class="mb-5">
+          <view class="field-label">
+            一起记得
+          </view><fg-person-tags :ids="note.personIds" />
+        </view>
+        <view class="detail-body">
           {{ note.content }}
         </view><view v-if="note.images.length > 1" class="detail-gallery">
           <image

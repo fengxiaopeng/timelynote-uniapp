@@ -52,3 +52,8 @@ pnpm upload:mp    # 小程序上传(见 hermes/release.md)
 # 合入前门禁(三条全过)
 pnpm type-check && pnpm lint && pnpm test:run
 ```
+
+## 用户协作约定
+
+- 直接基于 `master` 分支开发和提交，后续持续沿用；不另建功能分支或 PR。
+- 完成项目规定的检查后提交并推送 `master`，沿用已有 GitHub Pages 发布流程。
