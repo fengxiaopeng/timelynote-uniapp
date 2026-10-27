@@ -45,11 +45,10 @@ defineProps<{
       />
     </view>
     <view
-      v-if="note.place || note.weather"
+      v-if="note.place"
       class="muted mt-3 flex flex-wrap items-center gap-2 text-3"
     >
       <fg-journal-icon v-if="note.place" name="pin" />{{ note.place }}
-      <text>{{ note.weather }}</text>
     </view>
     <view
       v-if="note.tags.length || note.sample"

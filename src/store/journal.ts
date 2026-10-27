@@ -9,6 +9,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { countdown, emptyJournal, today } from '@/domain/journal'
 import { cloneJournal, journalRepository } from '@/repositories/journal'
+import { addTag, normalizeTag } from '@/domain/tags'
 import { removePerson, unlinkEvent, upsertPerson } from '@/domain/people'
 import { useLocalSessionStore } from './local-session'
 
@@ -36,11 +37,33 @@ export const useJournalStore = defineStore('journal', () => {
       loading.value = false
     }
   }
-  async function update(change: (next: JournalData) => void) {
-    const next = cloneJournal(data.value)
-    change(next)
-    await journalRepository.save(owner.value, next)
-    data.value = next
+  let mutationQueue: Promise<void> = Promise.resolve()
+  function update(change: (next: JournalData) => void) {
+    const targetOwner = owner.value
+    const task = mutationQueue.then(async () => {
+      if (owner.value !== targetOwner)
+        throw new Error('当前手账已切换，请重新操作')
+      const next = cloneJournal(data.value)
+      change(next)
+      await journalRepository.save(targetOwner, next)
+      if (owner.value === targetOwner)
+        data.value = next
+    })
+    mutationQueue = task.catch(() => {})
+    return task
+  }
+  async function saveTag(raw: string) {
+    const normalized = normalizeTag(raw)
+    const existing = data.value.tagLibrary.find(
+      tag => tag.toLocaleLowerCase() === normalized.toLocaleLowerCase(),
+    )
+    if (existing)
+      return existing
+    let saved = normalized
+    await update((next) => {
+      saved = addTag(next, normalized)
+    })
+    return saved
   }
   async function saveEvent(event: Anniversary) {
     await update((next) => {
@@ -70,6 +93,7 @@ export const useJournalStore = defineStore('journal', () => {
           item.pinned = false
         })
       }
+      for (const tag of event.tags || []) addTag(next, tag)
       const index = next.anniversaries.findIndex(
         item => item.id === event.id,
       )
@@ -80,6 +104,7 @@ export const useJournalStore = defineStore('journal', () => {
   }
   async function saveNote(note: Note) {
     await update((next) => {
+      for (const tag of note.tags) addTag(next, tag)
       const index = next.notes.findIndex(item => item.id === note.id)
       if (index < 0)
         next.notes.push(note)
@@ -200,7 +225,6 @@ export const useJournalStore = defineStore('journal', () => {
           tags: ['小满', '旅行', '第一次'],
           images: [],
           place: '青岛石老人',
-          weather: '晴 · 24°C',
           anniversaryId: 'sample-child',
           occurrence: '2027-01-20',
           sample: true,
@@ -216,7 +240,6 @@ export const useJournalStore = defineStore('journal', () => {
           tags: ['和阿宁', '日常'],
           images: [],
           place: '',
-          weather: '',
           anniversaryId: '',
           occurrence: '',
           sample: true,
@@ -231,7 +254,6 @@ export const useJournalStore = defineStore('journal', () => {
           tags: ['和阿宁'],
           images: [],
           place: '',
-          weather: '',
           anniversaryId: 'sample-wedding',
           occurrence: '2025-11-14',
           sample: true,
@@ -247,6 +269,7 @@ export const useJournalStore = defineStore('journal', () => {
     sortedNotes,
     load,
     update,
+    saveTag,
     savePerson,
     deletePerson,
     saveEvent,

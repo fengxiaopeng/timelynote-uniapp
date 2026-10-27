@@ -1,16 +1,9 @@
 <script setup lang="ts">
 import type { Note } from '@/domain/journal'
 import { onLoad } from '@dcloudio/uni-app'
-import { computed, ref } from 'vue'
-import {
-  blankNote,
-  nextOccurrence,
-  noteTags,
-  today,
-  validDate,
-} from '@/domain/journal'
+import { ref } from 'vue'
+import { blankNote, today, validDate } from '@/domain/journal'
 import { useJournalStore } from '@/store/journal'
-import { chooseLocalPhotos } from '@/utils/journal-media'
 import { back, confirmAction, toast } from '@/utils/journal-ui'
 
 definePage({
@@ -22,13 +15,6 @@ const editing = ref(false)
 const ready = ref(false)
 const busy = ref(false)
 const initial = ref('')
-const eventTitles = computed(() => [
-  '不关联纪念日',
-  ...store.data.anniversaries.map(item => item.title),
-])
-const linkedEvent = computed(() =>
-  store.data.anniversaries.find(item => item.id === note.value.anniversaryId),
-)
 onLoad(async (options) => {
   await store.load()
   if (options?.id) {
@@ -44,16 +30,6 @@ onLoad(async (options) => {
   else if (options?.draft === '1' && store.data.draft) {
     note.value = JSON.parse(JSON.stringify(store.data.draft))
   }
-  if (options?.eventId) {
-    const event = store.data.anniversaries.find(
-      item => item.id === options.eventId,
-    )
-    if (event) {
-      note.value.anniversaryId = event.id
-      note.value.occurrence = nextOccurrence(event)
-      note.value.personIds = [...(event.personIds || [])]
-    }
-  }
   if (
     typeof options?.personId === 'string'
     && store.data.people.some(person => person.id === options.personId)
@@ -65,48 +41,6 @@ onLoad(async (options) => {
   initial.value = JSON.stringify(note.value)
   ready.value = true
 })
-function toggleTag(tag: string) {
-  const index = note.value.tags.indexOf(tag)
-  if (index < 0)
-    note.value.tags.push(tag)
-  else note.value.tags.splice(index, 1)
-}
-async function link(index: number) {
-  const event = store.data.anniversaries[index - 1]
-  note.value.anniversaryId = event?.id || ''
-  note.value.occurrence = event ? nextOccurrence(event) : ''
-  const incoming
-    = event?.personIds?.filter(
-      id => !(note.value.personIds || []).includes(id),
-    ) || []
-  if (
-    incoming.length
-    && (await confirmAction(
-      '一起带入与这个日子有关的人？',
-      '保留手记已经选择的人，并加入纪念日中的人物；后续各自修改互不影响。',
-    ))
-  ) {
-    note.value.personIds = [
-      ...new Set([...(note.value.personIds || []), ...incoming]),
-    ]
-  }
-}
-function photos() {
-  chooseLocalPhotos(
-    (images) => {
-      if (note.value.images.length + images.length > 6) {
-        toast('一篇手记最多保留 6 张照片')
-        return
-      }
-      if ([...note.value.images, ...images].join('').length > 2500000) {
-        toast('照片较多，请减少照片后重试')
-        return
-      }
-      note.value.images.push(...images)
-    },
-    error => toast(error.message),
-  )
-}
 async function leave() {
   if (busy.value)
     return
@@ -160,10 +94,6 @@ async function save() {
     toast('发生日期不能晚于今天')
     return
   }
-  if (note.value.anniversaryId && !validDate(note.value.occurrence)) {
-    toast('请选择关联纪念日的具体日期')
-    return
-  }
   busy.value = true
   try {
     await store.saveNote({
@@ -215,29 +145,7 @@ async function save() {
       /><view class="muted mt-2 text-right text-3">
         {{ note.content.length }} / 10000
       </view>
-      <view class="photo-picker mt-5">
-        <view
-          v-for="(src, index) in note.images"
-          :key="index"
-          class="photo-preview"
-        >
-          <image :src="src" mode="aspectFill" /><button
-            role="button"
-            class="photo-remove"
-            :aria-label="`移除第 ${index + 1} 张照片`"
-            @click="note.images.splice(index, 1)"
-          >
-            ×
-          </button>
-        </view><button
-          v-if="note.images.length < 6"
-          role="button"
-          class="add-photo"
-          @click="photos"
-        >
-          <fg-journal-icon name="image" /><text>留一张照片</text>
-        </button>
-      </view>
+      <fg-photo-picker v-model="note.images" label="留一张照片" />
       <view class="paper settings-group mt-6">
         <picker
           mode="date"
@@ -249,69 +157,16 @@ async function save() {
           <view class="settings-row">
             <fg-journal-icon name="cal" /><text class="flex-1">发生日期</text><text>{{ note.date }} ›</text>
           </view>
-        </picker><picker
-          :range="eventTitles"
-          :value="
-            store.data.anniversaries.findIndex(
-              (item) => item.id === note.anniversaryId,
-            ) + 1
-          "
-          @change="link(Number($event.detail.value))"
-        >
-          <view class="settings-row">
-            <fg-journal-icon name="link" /><text class="flex-1">关联纪念日</text><text>{{ linkedEvent?.title || "可选" }} ›</text>
-          </view>
-        </picker><picker
-          v-if="linkedEvent"
-          mode="date"
-          :value="note.occurrence"
-          start="1900-01-01"
-          end="2100-12-31"
-          @change="note.occurrence = $event.detail.value"
-        >
-          <view class="settings-row">
-            <text class="flex-1">关联哪一次</text><text>{{ note.occurrence }} ›</text>
-          </view>
         </picker>
       </view>
-      <view v-if="linkedEvent" class="notice mt-2">
-        关联日期用于整理回忆，不会改变手记的发生日期。
-      </view>
       <fg-person-picker v-model="note.personIds" />
-      <view class="field-label mt-6">
-        给回忆贴个标签
-      </view><view class="chips">
-        <button
-          v-for="tag in noteTags"
-          :key="tag"
-          role="button"
-          class="chip"
-          :class="{ selected: note.tags.includes(tag) }"
-          @click="toggleTag(tag)"
-        >
-          {{ tag }}
-        </button><button
-          v-for="tag in note.tags.filter((item) => !noteTags.includes(item))"
-          :key="tag"
-          role="button"
-          class="chip selected"
-          @click="toggleTag(tag)"
-        >
-          {{ tag }} ×
-        </button>
-      </view>
+      <fg-tag-picker v-model="note.tags" />
       <label class="field-label mt-6" for="note-place">地点（可选）</label><input
         id="note-place"
         v-model="note.place"
         class="plain-input"
         placeholder="在哪里留下了这段回忆"
         :maxlength="60"
-      ><label class="field-label mt-5" for="note-weather">天气（可选）</label><input
-        id="note-weather"
-        v-model="note.weather"
-        class="plain-input"
-        placeholder="比如，晴 · 24°C"
-        :maxlength="30"
       >
       <button
         role="button"

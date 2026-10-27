@@ -19,12 +19,16 @@ describe('手账业务与账号隔离', () => {
     const before = store.data.notes.length
     await store.deleteEvent('sample-child')
     expect(store.data.notes).toHaveLength(before)
-    expect(store.data.notes.find(note => note.id === 'sample-sea')?.anniversaryId).toBe('')
+    expect(
+      store.data.notes.find(note => note.id === 'sample-sea')?.anniversaryId,
+    ).toBe('')
   })
   it('保存失败保留旧状态，重试不产生重复记录', async () => {
     const store = useJournalStore()
     const note = { ...blankNote(), content: '今天很好' }
-    vi.mocked(journalRepository.save).mockRejectedValueOnce(new Error('空间不足'))
+    vi.mocked(journalRepository.save).mockRejectedValueOnce(
+      new Error('空间不足'),
+    )
     await expect(store.saveNote(note)).rejects.toThrow('空间不足')
     expect(store.data.notes).toHaveLength(0)
     await store.saveNote(note)
@@ -36,7 +40,10 @@ describe('手账业务与账号隔离', () => {
     await store.addSamples()
     await store.load()
     expect(journalRepository.load).toHaveBeenLastCalledWith('guest')
-    useLocalSessionStore().session = { phone: '13800138000', mode: 'local-demo' }
+    useLocalSessionStore().session = {
+      phone: '13800138000',
+      mode: 'local-demo',
+    }
     await store.load()
     expect(journalRepository.load).toHaveBeenLastCalledWith('13800138000')
     expect(store.data.notes).toHaveLength(0)
@@ -45,10 +52,21 @@ describe('手账业务与账号隔离', () => {
 
 it('人物生日从纪念日入口修改，人物读取同一日期且只更新该纪念日', async () => {
   const store = useJournalStore()
-  const person = { id: 'child', name: '小满', relationship: '孩子', remark: '', archived: false, birthdayEventId: '' }
+  const person = {
+    id: 'child',
+    name: '小满',
+    relationship: '孩子',
+    remark: '',
+    archived: false,
+    birthdayEventId: '',
+  }
   await store.savePerson(person, { date: '2026-01-20', yearUnknown: false })
   const birthdayId = store.data.people[0].birthdayEventId
-  await store.saveEvent({ ...store.data.anniversaries[0], date: '2026-01-21', personIds: [] })
+  await store.saveEvent({
+    ...store.data.anniversaries[0],
+    date: '2026-01-21',
+    personIds: [],
+  })
   expect(store.data.anniversaries).toHaveLength(1)
   expect(store.data.anniversaries[0].id).toBe(birthdayId)
   expect(store.data.anniversaries[0].date).toBe('2026-01-21')
@@ -59,13 +77,81 @@ it('人物生日从纪念日入口修改，人物读取同一日期且只更新�
 
 it('保存人物失败不会留下半个生日或人物；账号切换清空人物展示', async () => {
   const store = useJournalStore()
-  const person = { id: 'child', name: '小满', relationship: '孩子', remark: '', archived: false, birthdayEventId: '' }
-  vi.mocked(journalRepository.save).mockRejectedValueOnce(new Error('空间不足'))
-  await expect(store.savePerson(person, { date: '2026-01-20', yearUnknown: false })).rejects.toThrow('空间不足')
+  const person = {
+    id: 'child',
+    name: '小满',
+    relationship: '孩子',
+    remark: '',
+    archived: false,
+    birthdayEventId: '',
+  }
+  vi.mocked(journalRepository.save).mockRejectedValueOnce(
+    new Error('空间不足'),
+  )
+  await expect(
+    store.savePerson(person, { date: '2026-01-20', yearUnknown: false }),
+  ).rejects.toThrow('空间不足')
   expect(store.data.people).toHaveLength(0)
   expect(store.data.anniversaries).toHaveLength(0)
   await store.savePerson(person, null)
   useLocalSessionStore().session = { phone: '13800138000', mode: 'local-demo' }
   await store.load()
   expect(store.data.people).toHaveLength(0)
+})
+
+it('并行新增标签和保存手记不会互相覆盖，失败后仍可继续保存', async () => {
+  const store = useJournalStore()
+  const note = { ...blankNote(), content: '今天很好' }
+  await Promise.all([store.saveTag('周末'), store.saveNote(note)])
+  expect(store.data.tagLibrary).toContain('周末')
+  expect(store.data.notes).toHaveLength(1)
+  vi.mocked(journalRepository.save).mockRejectedValueOnce(
+    new Error('空间不足'),
+  )
+  await expect(store.saveTag('未成功标签')).rejects.toThrow('空间不足')
+  expect(store.data.tagLibrary).not.toContain('未成功标签')
+  await store.saveTag('下次再记')
+  expect(store.data.tagLibrary).toContain('下次再记')
+})
+
+it('纪念日独立保存文字、照片和标签，不创建手记；生日修改也保留这些内容', async () => {
+  const store = useJournalStore()
+  const person = {
+    id: 'child',
+    name: '小满',
+    relationship: '孩子',
+    remark: '',
+    archived: false,
+    birthdayEventId: '',
+  }
+  await store.savePerson(person, { date: '2026-01-20', yearUnknown: false })
+  const event = {
+    ...store.data.anniversaries[0],
+    description: '一起准备生日蛋糕',
+    tags: ['生日计划'],
+    images: ['data:image/jpeg;base64,AA=='],
+  }
+  await store.saveEvent(event)
+  expect(store.data.notes).toHaveLength(0)
+  expect(store.data.tagLibrary).toContain('生日计划')
+  await store.savePerson(store.data.people[0], {
+    date: '2026-01-21',
+    yearUnknown: false,
+  })
+  expect(store.data.anniversaries[0].description).toBe('一起准备生日蛋糕')
+  expect(store.data.anniversaries[0].images).toEqual(event.images)
+  expect(store.data.anniversaries[0].tags).toEqual(event.tags)
+})
+
+it('同名标签并行创建复用同一大小写，切换账号后标签独立', async () => {
+  const store = useJournalStore()
+  expect(
+    await Promise.all([store.saveTag('Travel'), store.saveTag('travel')]),
+  ).toEqual(['Travel', 'Travel'])
+  expect(
+    store.data.tagLibrary.filter(tag => tag.toLowerCase() === 'travel'),
+  ).toHaveLength(1)
+  useLocalSessionStore().session = { phone: '13800138000', mode: 'local-demo' }
+  await store.load()
+  expect(store.data.tagLibrary).not.toContain('Travel')
 })

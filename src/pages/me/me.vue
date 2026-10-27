@@ -13,6 +13,14 @@ definePage({
 const store = useJournalStore()
 const auth = useLocalSessionStore()
 const help = ref(false)
+const photoCount = computed(
+  () =>
+    store.data.notes.reduce((sum, note) => sum + note.images.length, 0)
+    + store.data.anniversaries.reduce(
+      (sum, event) => sum + (event.images?.length || 0),
+      0,
+    ),
+)
 const maskedPhone = computed(() =>
   auth.session
     ? `${auth.session.phone.slice(0, 3)} ···· ${auth.session.phone.slice(-4)}`
@@ -127,9 +135,7 @@ async function discardDraft() {
           <text class="stat-number">{{ store.data.notes.length }}</text><text>珍藏手记</text>
         </view><view>
           <text class="stat-number">
-            {{
-              store.data.notes.reduce((sum, note) => sum + note.images.length, 0)
-            }}
+            {{ photoCount }}
           </text><text>瞬间照片</text>
         </view>
       </view>
@@ -174,14 +180,27 @@ async function discardDraft() {
       <view class="section-label mt-7">
         放在心上的人
       </view><view class="paper settings-group">
-        <button role="button" class="settings-row" @click="navigate({ url: '/pages/people/index' })">
-          <fg-journal-icon name="heart" /><text class="flex-1">重要的人</text><text class="muted text-3">{{ store.data.people.filter(person => !person.archived).length }} 位 ›</text>
+        <button
+          role="button"
+          class="settings-row"
+          @click="navigate({ url: '/pages/people/index' })"
+        >
+          <fg-journal-icon name="heart" /><text class="flex-1">重要的人</text><text class="muted text-3">
+            {{
+              store.data.people.filter((person) => !person.archived).length
+            }}
+            位 ›
+          </text>
         </button>
       </view>
       <view class="section-label mt-7">
         数据与回忆
       </view><view class="paper settings-group">
-        <button role="button" class="settings-row" @click="exportJournal(store.data)">
+        <button
+          role="button"
+          class="settings-row"
+          @click="exportJournal(store.data)"
+        >
           <fg-journal-icon name="export" /><text class="flex-1">
             导出手账备份
           </text><text class="muted text-3">JSON ›</text>
@@ -217,7 +236,12 @@ async function discardDraft() {
         </button><view class="settings-row">
           <text class="flex-1">如期手记 · H5 单机版</text><text class="muted text-3">v{{ appInfo.version }}</text>
         </view>
-      </view><button v-if="auth.session" role="button" class="outline-button my-6" @click="logout">
+      </view><button
+        v-if="auth.session"
+        role="button"
+        class="outline-button my-6"
+        @click="logout"
+      >
         退出当前账号
       </button><view class="feed-footer">
         把未来的期待与过去的瞬间，<br>安放在同一页时光里。
@@ -230,10 +254,14 @@ async function discardDraft() {
         </view><view class="mt-5 text-3.5 leading-8">
           点击底部「＋」写手记或添加纪念日。纪念日支持公历年度重复；2 月 29
           日在非闰年按 2 月 28
-          日计算。手记可以独立保存，也可以关联某一次纪念日。<br><br>验证码固定为
+          日计算。手记独立记录日常；纪念日可直接补充文字、照片和标签。人物和标签直接点选即可。<br><br>验证码固定为
           9999。游客和各手机号使用独立本地手账，不会自动迁移记录。退出后再次登录相同号码可恢复本机手账。<br><br>数据和照片保存在当前浏览器。建议定期导出
           JSON 备份；当前未接入短信、云同步、系统通知、图片与链接分享。
-        </view><button role="button" class="primary-button mt-6" @click="help = false">
+        </view><button
+          role="button"
+          class="primary-button mt-6"
+          @click="help = false"
+        >
           继续记录
         </button>
       </view>

@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { back, confirmAction, navigate, toast } from '@/utils/journal-ui'
+import {
+  back,
+  confirmAction,
+  navigate,
+  previewImage,
+  toast,
+} from '@/utils/journal-ui'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 import {
@@ -65,7 +71,9 @@ async function remove() {
   if (
     !(await confirmAction(
       '删除这个纪念日？',
-      event.value?.birthdayPersonId ? '这也会清空人物资料中的生日。手记和人物本身保留，手记解除纪念日关联。' : '关联手记会保留，并解除与这个纪念日的关联。删除后无法恢复。',
+      event.value?.birthdayPersonId
+        ? '这也会清空人物资料中的生日。手记和人物本身保留，手记解除纪念日关联。'
+        : '关联手记会保留，并解除与这个纪念日的关联。删除后无法恢复。',
     ))
   ) {
     return
@@ -88,8 +96,15 @@ async function remove() {
         <fg-journal-icon name="chevL" />
       </button><text class="muted text-3">
         {{ event?.category || "纪念日"
-        }}<template v-if="event?.repeat === 'yearly' && !event.yearUnknown && anniversaryYear > 0">
-          · {{ anniversaryYear }} {{ event.category === '生日' ? '岁生日' : '周年' }}
+        }}<template
+          v-if="
+            event?.repeat === 'yearly'
+              && !event.yearUnknown
+              && anniversaryYear > 0
+          "
+        >
+          · {{ anniversaryYear }}
+          {{ event.category === "生日" ? "岁生日" : "周年" }}
         </template>
       </text><button
         v-if="event"
@@ -111,9 +126,7 @@ async function remove() {
         >
           <view class="ring-inner">
             <text class="hero-number">{{ Math.abs(count) }}</text><text class="muted text-3">
-              {{
-                count === 0 ? "就是今天" : count > 0 ? "天后" : "天前"
-              }}
+              {{ count === 0 ? "就是今天" : count > 0 ? "天后" : "天前" }}
             </text>
           </view>
         </view><view class="serif mt-6 text-8">
@@ -133,10 +146,36 @@ async function remove() {
             一起记得
           </view><fg-person-tags :ids="event.personIds" />
         </view>
-        <view v-if="event.description" class="event-message">
-          “{{ event.description }}”
-        </view><view class="section-label">
-          这一天的记忆<text>{{ notes.length }}</text>
+        <view
+          v-if="event.description || event.images?.length || event.tags?.length"
+          class="paper event-story"
+        >
+          <view class="field-label">
+            关于这一天
+          </view>
+          <view v-if="event.description" class="detail-body">
+            {{
+              event.description
+            }}
+          </view>
+          <view v-if="event.images?.length" class="event-photo-grid mt-4">
+            <image
+              v-for="(src, index) in event.images"
+              :key="index"
+              :src="src"
+              mode="aspectFill"
+              @click="previewImage({ urls: event.images || [], current: src })"
+            />
+          </view>
+          <view v-if="event.tags?.length" class="mt-4 flex flex-wrap gap-2">
+            <text v-for="tag in event.tags" :key="tag" class="note-tag">
+              {{
+                tag
+              }}
+            </text>
+          </view>
+        </view><view v-if="notes.length" class="section-label mt-6">
+          以往的手记<text>{{ notes.length }}</text>
         </view><view v-for="year in groups" :key="year" class="mb-7">
           <view class="year-label">
             {{ year }}<text>年</text>
@@ -153,10 +192,21 @@ async function remove() {
               </view><NoteCard :note="note" />
             </view>
           </view>
-        </view><view v-if="!notes.length" class="small-empty serif">
-          这里还没有回忆，<br>为这一天留下第一笔吧。
+        </view><view
+          v-if="
+            !event.description && !event.images?.length && !event.tags?.length
+          "
+          class="small-empty serif"
+        >
+          给这一天留一点文字，<br>或者几张值得记得的照片。
         </view><view class="muted mt-6 text-center text-3">
-          最初的日子 · {{ event.yearUnknown ? `${Number(event.date.slice(5, 7))}月${Number(event.date.slice(8))}日（年份未填写）` : event.date }} ·
+          最初的日子 ·
+          {{
+            event.yearUnknown
+              ? `${Number(event.date.slice(5, 7))}月${Number(event.date.slice(8))}日（年份未填写）`
+              : event.date
+          }}
+          ·
           {{ event.repeat === "yearly" ? "每年纪念" : "只此一次" }}
         </view>
       </view>
@@ -166,22 +216,11 @@ async function remove() {
           class="primary-button flex-1"
           @click="
             navigate({
-              url: `/pages/journal/compose?eventId=${encodeURIComponent(id)}`,
+              url: `/pages/journal/event-edit?id=${encodeURIComponent(id)}&section=story`,
             })
           "
         >
-          <fg-journal-icon name="pen" />为这天记一笔
-        </button><button
-          role="button"
-          class="outline-button"
-          aria-label="编辑纪念日"
-          @click="
-            navigate({
-              url: `/pages/journal/event-edit?id=${encodeURIComponent(id)}`,
-            })
-          "
-        >
-          <fg-journal-icon name="edit" />
+          <fg-journal-icon name="pen" />丰富这一天
         </button>
       </view>
     </template>

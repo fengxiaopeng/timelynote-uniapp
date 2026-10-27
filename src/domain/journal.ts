@@ -12,6 +12,8 @@ export interface BirthdayInput {
   reuseEventId?: string
 }
 export interface Anniversary {
+  tags?: string[]
+  images?: string[]
   personIds?: string[]
   birthdayPersonId?: string
   yearUnknown?: boolean
@@ -36,7 +38,7 @@ export interface Note {
   tags: string[]
   images: string[]
   place: string
-  weather: string
+  /** 仅保留旧版历史归属，新手记不再建立纪念日关联。 */
   anniversaryId: string
   occurrence: string
   sample?: boolean
@@ -47,6 +49,7 @@ export interface Preferences {
   sameDay: boolean
 }
 export interface JournalData {
+  tagLibrary: string[]
   people: Person[]
   anniversaries: Anniversary[]
   notes: Note[]
@@ -54,9 +57,10 @@ export interface JournalData {
   preferences: Preferences
 }
 export const categories = ['全部', '纪念', '生日', '成长', '其他']
-export const noteTags = ['日常', '和阿宁', '小满', '旅行', '第一次']
+export const defaultTags = ['日常', '旅行', '第一次', '成长', '纪念']
 export function emptyJournal(): JournalData {
   return {
+    tagLibrary: [...defaultTags],
     people: [],
     anniversaries: [],
     notes: [],
@@ -122,7 +126,6 @@ export function blankNote(): Note {
     tags: [],
     images: [],
     place: '',
-    weather: '',
     anniversaryId: '',
     occurrence: '',
   }
@@ -138,6 +141,8 @@ function stringArray(value: unknown): value is string[] {
 export function validAnniversary(value: unknown): value is Anniversary {
   return (
     record(value)
+    && (value.tags === undefined || stringArray(value.tags))
+    && (value.images === undefined || validImages(value.images))
     && (value.personIds === undefined || stringArray(value.personIds))
     && (value.birthdayPersonId === undefined
       || typeof value.birthdayPersonId === 'string')
@@ -156,6 +161,7 @@ export function validAnniversary(value: unknown): value is Anniversary {
 export function validNote(value: unknown): value is Note {
   return (
     record(value)
+    && !('weather' in value)
     && (value.personIds === undefined || stringArray(value.personIds))
     && [
       'id',
@@ -163,22 +169,19 @@ export function validNote(value: unknown): value is Note {
       'content',
       'createdAt',
       'place',
-      'weather',
       'anniversaryId',
       'occurrence',
     ].every(key => typeof value[key] === 'string')
     && validDate(value.date)
     && (value.occurrence === '' || validDate(value.occurrence))
     && stringArray(value.tags)
-    && stringArray(value.images)
-    && value.images.every(src =>
-      /^data:image\/(?:png|jpeg|webp);base64,/.test(src),
-    )
+    && validImages(value.images)
   )
 }
 export function validJournal(value: unknown): value is JournalData {
   return (
     record(value)
+    && stringArray(value.tagLibrary)
     && Array.isArray(value.people)
     && value.people.every(validPerson)
     && Array.isArray(value.anniversaries)
@@ -205,17 +208,50 @@ export function validPerson(value: unknown): value is Person {
     && String(value.name).trim().length > 0
   )
 }
-/** v1 手账和备份迁移：只补缺失字段，不覆盖内容或根据正文猜测人物。 */
+/** 兼容旧手账和备份；移除已弃用天气，保留原文、照片与历史归属。 */
 export function migrateJournal(value: unknown): JournalData | null {
   if (!record(value))
     return null
+  const stripWeather = (note: unknown) => {
+    if (!record(note))
+      return note
+    const result = { ...note }
+    delete result.weather
+    return result
+  }
   const next = {
     ...value,
+    tagLibrary:
+      value.tagLibrary === undefined ? [...defaultTags] : value.tagLibrary,
     people: value.people === undefined ? [] : value.people,
+    notes: Array.isArray(value.notes)
+      ? value.notes.map(stripWeather)
+      : value.notes,
+    draft: stripWeather(value.draft),
   }
   if (!validJournal(next))
     return null
-  return JSON.parse(JSON.stringify(next))
+  const result: JournalData = JSON.parse(JSON.stringify(next))
+  for (const event of result.anniversaries) {
+    event.tags ??= []
+    event.images ??= []
+  }
+  result.tagLibrary = [
+    ...new Set([
+      ...result.tagLibrary,
+      ...result.notes.flatMap(note => note.tags),
+      ...(result.draft?.tags || []),
+      ...result.anniversaries.flatMap(event => event.tags || []),
+    ]),
+  ]
+  return result
+}
+
+function validImages(value: unknown): value is string[] {
+  return (
+    stringArray(value)
+    && value.every(src => /^data:image\/(?:png|jpeg|webp);base64,/.test(src))
+  )
 }
 
 function validPeopleLinks(data: JournalData) {

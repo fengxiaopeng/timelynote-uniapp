@@ -44,7 +44,7 @@ const matchingEvents = computed(() =>
     event =>
       (category.value === '全部' || category.value === event.category)
       && (!selectedPerson.value || event.personIds?.includes(selectedPerson.value))
-      && `${event.title} ${event.description} ${event.category} ${peopleText(store.data, event.personIds)}`.includes(
+      && `${event.title} ${event.description} ${event.category} ${(event.tags || []).join(' ')} ${peopleText(store.data, event.personIds)}`.includes(
         keyword.value.trim(),
       ),
   ),

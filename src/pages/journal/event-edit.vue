@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Anniversary } from '@/domain/journal'
 import { onLoad } from '@dcloudio/uni-app'
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import {
   categories,
   dateLabel,
@@ -31,6 +31,8 @@ const event = ref<Anniversary>({
   reminderTime: '09:00',
   pinned: false,
   description: '',
+  tags: [],
+  images: [],
 })
 const cells = computed(() => {
   const [year, m] = month.value.split('-').map(Number)
@@ -51,7 +53,13 @@ onLoad(async (options) => {
       back()
       return
     }
-    event.value = { ...existing }
+    event.value = JSON.parse(
+      JSON.stringify({
+        ...existing,
+        tags: existing.tags || [],
+        images: existing.images || [],
+      }),
+    )
     editing.value = true
   }
   else {
@@ -67,6 +75,10 @@ onLoad(async (options) => {
   }
   initial.value = JSON.stringify(event.value)
   ready.value = true
+  if (options?.section === 'story') {
+    await nextTick()
+    uni.pageScrollTo({ selector: '#event-story', duration: 200 })
+  }
 })
 function changeMonth(amount: number) {
   const [year, m] = month.value.split('-').map(Number)
@@ -209,7 +221,11 @@ async function save() {
       <view class="field-label mt-7">
         选一个日子 · 公历
       </view>
-      <fg-month-day-picker v-if="event.yearUnknown" v-model="event.date" class="paper" />
+      <fg-month-day-picker
+        v-if="event.yearUnknown"
+        v-model="event.date"
+        class="paper"
+      />
       <picker
         v-else
         mode="date"
@@ -336,13 +352,20 @@ async function save() {
       <view class="notice mt-3">
         提醒规则会保存在本机，当前版本暂不发送系统通知。
       </view>
-      <label class="field-label mt-7" for="event-description">想说的话（可选）</label><textarea
+      <view id="event-story" />
+      <label class="field-label mt-7" for="event-description">关于这一天（可选）</label><textarea
         id="event-description"
         v-model="event.description"
         class="lined-input"
-        placeholder="给这天留一句…"
-        :maxlength="2000"
+        :auto-height="true"
+        placeholder="期待、安排，或者这一天想留下的故事…"
+        :maxlength="10000"
       />
+      <view class="field-label mt-5">
+        这一天的照片
+      </view>
+      <fg-photo-picker v-model="event.images" />
+      <fg-tag-picker v-model="event.tags" label="给这天贴个标签" />
       <button
         role="button"
         class="primary-button my-6"

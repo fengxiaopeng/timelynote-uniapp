@@ -19,11 +19,6 @@ const id = ref('')
 const note = computed(() =>
   store.data.notes.find(item => item.id === id.value),
 )
-const event = computed(() =>
-  store.data.anniversaries.find(
-    item => item.id === note.value?.anniversaryId,
-  ),
-)
 onLoad((options) => {
   id.value = typeof options?.id === 'string' ? options.id : ''
 })
@@ -94,11 +89,10 @@ function copy() {
         </view><view class="serif my-5 text-8 leading-snug">
           {{ note.title || "一页日常" }}
         </view><view
-          v-if="note.place || note.weather"
+          v-if="note.place"
           class="muted mb-5 flex items-center gap-2 text-3"
         >
-          <fg-journal-icon name="pin" />{{ note.place
-          }}<text class="ml-auto">{{ note.weather }}</text>
+          <fg-journal-icon name="pin" />{{ note.place }}
         </view><view v-if="note.personIds?.length" class="mb-5">
           <view class="field-label">
             一起记得
@@ -116,26 +110,9 @@ function copy() {
           />
         </view><view class="my-6 flex flex-wrap gap-2">
           <text v-for="tag in note.tags" :key="tag" class="note-tag">
-            {{
-              tag
-            }}
+            {{ tag }}
           </text><text v-if="note.sample" class="sample-label">示例手记</text>
-        </view><button
-          v-if="event"
-          role="button"
-          class="linked-card"
-          @click="
-            navigate({
-              url: `/pages/journal/event-detail?id=${encodeURIComponent(event.id)}`,
-            })
-          "
-        >
-          <fg-journal-icon name="link" /><view>
-            <view>写给 · {{ event.title }}</view><view class="muted mt-1 text-3">
-              关联 {{ note.occurrence }} 这一次
-            </view>
-          </view><text class="ml-auto">→</text>
-        </button><view class="detail-signature">
+        </view><view class="detail-signature">
           日子有迹，念念如期。
         </view>
       </view>
@@ -149,7 +126,7 @@ function copy() {
             })
           "
         >
-          <fg-journal-icon name="edit" />修改与关联
+          <fg-journal-icon name="edit" />修改手记
         </button><button role="button" class="outline-button" @click="copy">
           <fg-journal-icon name="share" />复制文字
         </button>
