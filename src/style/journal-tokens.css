@@ -1,0 +1,85 @@
+:root {
+  /* 纸 —— 暖调中性色，chroma 极低但可感知 */
+  --paper-0: oklch(96.8% 0.011 78); /* 桌面/最底层 */
+  --paper-1: oklch(99.3% 0.005 78); /* 卡片纸面 */
+  --paper-2: oklch(94.2% 0.016 78); /* 分组底 / 凹陷 */
+  --paper-3: oklch(90.5% 0.02 76); /* 输入框底 */
+  --edge: oklch(87% 0.022 70); /* 分隔线 */
+  --edge-soft: oklch(92% 0.014 70);
+
+  /* 墨 —— 深褐黑，非纯黑 */
+  --ink-900: oklch(26% 0.022 42);
+  --ink-700: oklch(38% 0.02 42);
+  --ink-500: oklch(50% 0.016 42);
+  --ink-400: oklch(60% 0.014 42);
+  --ink-300: oklch(70% 0.011 42); /* 仅用于装饰，不承载正文 */
+
+  /* 朱砂 —— 品牌主色：纪念日 / 印章 / 关键动作 */
+  --cinnabar-700: oklch(45% 0.175 30);
+  --cinnabar-600: oklch(52% 0.185 32);
+  --cinnabar-500: oklch(60% 0.165 34);
+  --cinnabar-100: oklch(94% 0.032 32);
+  --cinnabar-text: oklch(46% 0.185 32); /* 文字级，AA 通过 */
+
+  /* 靛青 —— 副色：手记 / 记忆 / 文字 */
+  --indigo-700: oklch(40% 0.07 258);
+  --indigo-600: oklch(47% 0.072 258);
+  --indigo-300: oklch(72% 0.045 258);
+  --indigo-100: oklch(94.5% 0.018 258);
+
+  /* 语义 */
+  --amber-600: oklch(62% 0.13 68); /* 临近提醒 */
+  --amber-100: oklch(94% 0.045 72);
+  --moss-600: oklch(52% 0.078 152); /* 已完成 / 已记录 */
+  --moss-100: oklch(94% 0.03 152);
+  --violet-500: oklch(58% 0.075 315); /* 宝宝成长 */
+  --violet-100: oklch(95% 0.022 315);
+
+  /* 字体 */
+  --font-hand: 'LXGW WenKai', 'Kaiti SC', 'STKaiti', 'KaiTi', '楷体', 'Songti SC', 'STSong', serif;
+  --font-display: 'Instrument Serif', 'Playfair Display', Georgia, 'Songti SC', serif;
+  --font-body:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', system-ui,
+    sans-serif;
+
+  /* 字号刻度 (1.25 major third) */
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.3125rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-hero: 3.75rem;
+
+  /* 间距 —— 4px 基准 */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* 圆角 —— 手账纸片：小而克制 */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-full: 999px;
+
+  /* 阴影 —— 暖色、低扩散，模拟纸叠放 */
+  --sh-1: 0 1px 2px oklch(40% 0.03 50 / 0.07), 0 1px 1px oklch(40% 0.03 50 / 0.05);
+  --sh-2: 0 2px 6px -1px oklch(40% 0.03 50 / 0.1), 0 1px 3px oklch(40% 0.03 50 / 0.06);
+  --sh-3: 0 8px 20px -6px oklch(38% 0.04 45 / 0.18), 0 2px 6px oklch(38% 0.04 45 / 0.08);
+  --sh-modal: 0 -12px 40px -12px oklch(35% 0.05 45 / 0.28);
+
+  /* 动效 —— 指数缓动 */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 160ms;
+  --dur-base: 280ms;
+  --dur-slow: 480ms;
+}
