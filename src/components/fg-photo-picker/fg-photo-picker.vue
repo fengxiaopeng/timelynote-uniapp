@@ -32,6 +32,19 @@ function add() {
     source: 'album',
   })
 }
+function takePhoto() {
+  // 触屏设备直接交给系统拍摄；桌面浏览器保留可用摄像头预览。
+  // #ifdef H5
+  if (window.matchMedia('(any-pointer: coarse)').matches) {
+    chooseLocalPhotos(append, error => toast(error.message), {
+      source: 'camera',
+      multiple: false,
+    })
+    return
+  }
+  // #endif
+  cameraOpen.value = true
+}
 function captured(image: string) {
   append([image])
   cameraOpen.value = false
@@ -60,7 +73,7 @@ function captured(image: string) {
         v-if="camera"
         role="button"
         class="add-photo"
-        @click="cameraOpen = true"
+        @click="takePhoto"
       >
         <fg-journal-icon name="camera" /><text>拍一张照片</text>
       </button>

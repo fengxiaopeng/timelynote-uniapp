@@ -136,10 +136,8 @@ async function save() {
       </picker>
     </view>
     <view v-if="ready" class="journal-content form-content">
-      <view class="serif mt-3 text-7">
+      <view class="serif mb-6 mt-3 text-7">
         今天，有什么想留下？
-      </view><view class="muted mb-6 mt-2 text-3.5">
-        不必特别，一句话也很好。
       </view>
       <label class="field-label" for="note-title">给这一刻起个名字（可选）</label><input
         id="note-title"

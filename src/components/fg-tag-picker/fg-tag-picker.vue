@@ -47,24 +47,30 @@ async function create() {
   <view class="tag-picker my-5">
     <view class="field-label">
       {{ label }}
-    </view><view class="chips">
+    </view><view class="editor-tag-row">
+      <scroll-view scroll-x :show-scrollbar="false" class="editor-tag-scroll">
+        <view class="chips editor-tag-chips">
+          <button
+            v-for="tag in tags"
+            :key="tag"
+            role="button"
+            class="chip"
+            :class="{ selected: modelValue?.includes(tag) }"
+            :aria-pressed="!!modelValue?.includes(tag)"
+            @click="toggle(tag)"
+          >
+            {{ tag }}{{ modelValue?.includes(tag) ? " ✓" : "" }}
+          </button>
+        </view>
+      </scroll-view>
       <button
-        v-for="tag in tags"
-        :key="tag"
-        role="button"
-        class="chip"
-        :class="{ selected: modelValue?.includes(tag) }"
-        :aria-pressed="!!modelValue?.includes(tag)"
-        @click="toggle(tag)"
-      >
-        {{ tag }}{{ modelValue?.includes(tag) ? " ✓" : "" }}
-      </button><button
         v-if="!adding"
         role="button"
         class="chip chip-add"
+        aria-label="新建标签"
         @click="adding = true"
       >
-        ＋ 新建标签
+        ＋ 新建
       </button>
     </view><view v-if="adding" class="tag-create-row mt-3">
       <input

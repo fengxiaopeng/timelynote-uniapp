@@ -1400,3 +1400,31 @@ page {
   flex-shrink: 0;
   white-space: nowrap;
 }
+
+.editor-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.editor-tag-scroll {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+}
+.editor-tag-chips {
+  flex-wrap: nowrap;
+  width: max-content;
+  min-width: 100%;
+  gap: 6px;
+  padding: 1px 0;
+}
+.journal-page .editor-tag-row .chip {
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: 4px 9px;
+  font-size: 12px;
+  line-height: 22px;
+  white-space: nowrap;
+  border-radius: 6px;
+}

@@ -33,7 +33,7 @@ function saved(id: string) {
 </script>
 
 <template>
-  <view class="my-5">
+  <view class="person-picker my-5">
     <view class="field-label">
       与谁有关
     </view><view v-if="store.data.people.length > 8" class="search-box">
@@ -42,24 +42,29 @@ function saved(id: string) {
         placeholder="搜索称呼或关系"
         aria-label="搜索人物"
       >
-    </view><view class="chips">
-      <button
-        v-for="person in people"
-        :key="person.id"
-        role="button"
-        class="chip"
-        :class="{
-          'selected': modelValue?.includes(person.id),
-          'person-owner': lockedIds?.includes(person.id),
-        }"
-        :disabled="lockedIds?.includes(person.id)"
-        :aria-pressed="!!modelValue?.includes(person.id)"
-        @click="toggle(person.id)"
-      >
-        {{ person.name }}{{ modelValue?.includes(person.id) ? " ✓" : ""
-        }}{{ person.archived ? " · 已归档" : "" }}
-      </button><button role="button" class="chip chip-add" @click="creating = true">
-        ＋ 添加人物
+    </view><view class="editor-tag-row">
+      <scroll-view scroll-x :show-scrollbar="false" class="editor-tag-scroll">
+        <view class="chips editor-tag-chips">
+          <button
+            v-for="person in people"
+            :key="person.id"
+            role="button"
+            class="chip"
+            :class="{
+              'selected': modelValue?.includes(person.id),
+              'person-owner': lockedIds?.includes(person.id),
+            }"
+            :disabled="lockedIds?.includes(person.id)"
+            :aria-pressed="!!modelValue?.includes(person.id)"
+            @click="toggle(person.id)"
+          >
+            {{ person.name }}{{ modelValue?.includes(person.id) ? " ✓" : ""
+            }}{{ person.archived ? " · 已归档" : "" }}
+          </button>
+        </view>
+      </scroll-view>
+      <button role="button" class="chip chip-add" aria-label="添加人物" @click="creating = true">
+        ＋ 添加
       </button>
     </view><view v-if="search && !people.length" class="muted mt-2 text-3">
       没有找到，换个称呼试试。
