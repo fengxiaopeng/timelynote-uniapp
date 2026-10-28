@@ -66,9 +66,8 @@ onShow(async () => {
           v-model:tags="selectedTags"
           v-model:people="selectedPeople"
           compact
-        /><view class="section-label">
-          记得<text>{{ filtered.length }}篇手记</text>
-        </view><NoteList :items="filtered" /><view
+          minimal
+        /><NoteList :items="filtered" /><view
           v-if="!filtered.length"
           class="small-empty serif"
         >

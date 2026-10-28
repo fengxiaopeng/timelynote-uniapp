@@ -1,61 +1,41 @@
 <script setup lang="ts">
-import { navigate } from '@/utils/journal-ui'
 import type { Note } from '@/domain/journal'
+import { computed } from 'vue'
+import { navigate } from '@/utils/journal-ui'
 
-defineProps<{
-  note: Note
-}>()
+const props = defineProps<{ note: Note, compact?: boolean }>()
+const sample = computed(() => !props.note.images.length && props.note.sample && props.note.id === 'sample-sea')
 </script>
 
 <template>
-  <button
-    role="button"
-    class="paper note-card"
-    @click="
-      navigate({
-        url: `/pages/journal/note-detail?id=${encodeURIComponent(note.id)}`,
-      })
-    "
-  >
-    <view class="flex items-start justify-between gap-3">
+  <button role="button" class="paper note-card" :class="{ 'note-card-compact': compact }" @click="navigate({ url: `/pages/journal/note-detail?id=${encodeURIComponent(note.id)}` })">
+    <view class="card-title-row">
       <view class="card-title">
-        {{ note.title || "一页日常" }}
-      </view><text class="muted shrink-0 text-3">
-        {{
-          note.date.slice(5).replace("-", "/")
-        }}
-      </text>
+        {{ note.title || '一页日常' }}
+      </view><text class="card-date note-card-date">{{ note.date.slice(5).replace('-', '/') }}</text>
     </view>
-    <view class="note-excerpt">
+    <view v-if="note.content" class="note-excerpt">
       {{ note.content }}
     </view>
-    <view v-if="note.images.length" class="note-thumbnails">
-      <image
-        v-for="(src, index) in note.images.slice(0, 3)"
-        :key="index"
-        :src="src"
-        mode="aspectFill"
-      /><text v-if="note.images.length > 3" class="more-images">
-        +{{ note.images.length - 3 }}
-      </text>
+    <view v-if="note.images.length" class="note-gallery" :class="{ 'note-gallery-single': note.images.length === 1, 'note-gallery-pair': note.images.length === 2, 'note-gallery-grid': note.images.length >= 3 }">
+      <view v-for="(src, index) in note.images.slice(0, 3)" :key="index" class="note-photo-cell">
+        <image :src="src" mode="aspectFill" :aria-label="`${note.title || '手记'}，第 ${index + 1} 张照片`" />
+        <text v-if="index === 2 && note.images.length > 3" class="more-images">+{{ note.images.length - 3 }}</text>
+      </view>
     </view>
-    <view v-else-if="note.id === 'sample-sea'" class="note-thumbnails">
-      <view class="photo--sea" /><view class="photo--dusk" /><view
-        class="photo--room"
-      />
+    <view v-else-if="sample" class="note-gallery note-gallery-grid">
+      <view class="note-photo-cell photo--sea" /><view class="note-photo-cell photo--dusk" /><view class="note-photo-cell photo--room" />
     </view>
-    <view
-      v-if="note.place"
-      class="muted mt-3 flex flex-wrap items-center gap-2 text-3"
-    >
-      <fg-journal-icon v-if="note.place" name="pin" />{{ note.place }}
+    <view v-if="note.place" class="card-place">
+      <fg-journal-icon name="pin" /><text>{{ note.place }}</text>
     </view>
-    <view
-      v-if="note.tags.length || note.sample"
-      class="mt-3 flex flex-wrap gap-2"
-    >
-      <text v-for="tag in note.tags" :key="tag" class="note-tag">{{ tag }}</text><text v-if="note.sample" class="sample-label">示例</text>
+    <view v-if="note.tags.length || note.sample || note.personIds?.length" class="card-footer">
+      <view class="card-tags">
+        <text v-for="tag in note.tags.slice(0, 3)" :key="tag" class="note-tag">{{ tag }}</text>
+        <text v-if="note.tags.length > 3" class="card-tag-more">+{{ note.tags.length - 3 }}</text>
+        <text v-if="note.sample" class="sample-label">示例</text>
+      </view>
+      <fg-person-tags :ids="note.personIds" compact />
     </view>
-    <fg-person-tags :ids="note.personIds" />
   </button>
 </template>

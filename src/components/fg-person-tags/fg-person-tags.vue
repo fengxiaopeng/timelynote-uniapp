@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useJournalStore } from '@/store/journal'
 import { navigate } from '@/utils/journal-ui'
 
-const props = defineProps<{ ids?: string[] }>()
+const props = withDefaults(defineProps<{ ids?: string[], compact?: boolean }>(), { compact: false })
 const store = useJournalStore()
 const people = computed(() =>
   store.data.people.filter(person => props.ids?.includes(person.id)),
@@ -14,7 +14,7 @@ function open(id: string) {
 </script>
 
 <template>
-  <view v-if="people.length" class="person-tags">
+  <view v-if="people.length" class="person-tags" :class="{ 'person-tags-compact': compact }">
     <view
       v-for="person in people"
       :key="person.id"
@@ -25,7 +25,7 @@ function open(id: string) {
       @click.stop="open(person.id)"
       @keydown.enter.stop="open(person.id)"
     >
-      <fg-person-avatar :name="person.name" :src="person.avatar" :size="36" /><text class="person-choice-name">{{ person.name }}</text>
+      <fg-person-avatar :name="person.name" :src="person.avatar" :size="compact ? 24 : 36" /><text class="person-choice-name">{{ person.name }}</text>
     </view>
   </view>
 </template>

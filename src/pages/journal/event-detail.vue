@@ -177,17 +177,15 @@ async function remove() {
         </view><view v-for="year in groups" :key="year" class="mb-7">
           <view class="year-label">
             {{ year }}<text>年</text>
-          </view><view class="timeline">
+          </view><view class="record-list">
             <view
               v-for="note in notes.filter((item) =>
                 (item.occurrence || item.date).startsWith(year),
               )"
               :key="note.id"
-              class="timeline-item"
+              class="record-list-item"
             >
-              <view class="timeline-node past-node">
-                <fg-journal-icon name="pen" />
-              </view><NoteCard :note="note" />
+              <NoteCard :note="note" />
             </view>
           </view>
         </view><view v-if="!notes.length" class="small-empty serif">

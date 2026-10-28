@@ -52,7 +52,7 @@ const events = computed(() =>
   props.mode === 'home' && !keyword.value
     ? matchingEvents.value
         .filter(event => countdown(event, date.value) >= 0)
-        .slice(0, 3)
+        .slice(0, 2)
     : matchingEvents.value,
 )
 const notes = computed(() =>
@@ -97,7 +97,7 @@ async function samples() {
 </script>
 
 <template>
-  <view class="journal-page feed-page" :class="{ 'events-workspace': mode === 'events' }">
+  <view class="journal-page feed-page" :class="{ 'events-workspace': mode === 'events', 'home-workspace': mode === 'home' }">
     <view class="journal-appbar" :class="{ 'events-appbar': mode === 'events' }">
       <view>
         <view class="page-title">
@@ -143,7 +143,7 @@ async function samples() {
       </view>
     </view>
     <view class="journal-content">
-      <fg-record-filters v-if="mode === 'events'" v-model:tags="selectedTags" v-model:people="selectedPeople" compact scope="event" />
+      <fg-record-filters v-if="mode === 'events'" v-model:tags="selectedTags" v-model:people="selectedPeople" compact minimal scope="event" />
       <view v-if="searchOpen" class="search-box">
         <fg-journal-icon name="search" /><input
           v-model="keyword"
@@ -160,7 +160,7 @@ async function samples() {
         </button>
       </view>
       <view v-if="mode === 'home' && pinned && !keyword" class="warmbar">
-        <fg-journal-icon name="heart" /><text>
+        <fg-journal-icon name="heart" /><text class="warm-copy">
           {{ pinned.title }}，{{
             !pinned.yearUnknown && daysBetween(pinned.date, date) >= 0 ? "已经" : "还有"
           }}
@@ -204,7 +204,7 @@ async function samples() {
               ? keyword
                 ? "找到的日子"
                 : "将至"
-              : "重要的日子"
+              : events.every(event => countdown(event, date) >= 0) ? "即将到来" : "值得记得"
           }}<text>{{ events.length }}{{ mode === 'events' ? '个纪念日' : '' }}</text><button
             v-if="mode === 'home'"
             role="button"
@@ -214,7 +214,7 @@ async function samples() {
             全部纪念日 →
           </button>
         </view>
-        <AnniversaryList :items="events" :summary="mode === 'home'" />
+        <AnniversaryList :items="events" :summary="mode === 'home' && !keyword" />
         <view v-if="!events.length" class="small-empty">
           {{
             keyword || selectedTags.length || selectedPeople.length
@@ -222,20 +222,18 @@ async function samples() {
               : "还没有将至的日子，给未来留一点期待吧。"
           }}
         </view>
-        <view v-if="mode === 'home'" class="today-line">
-          <text />◆ 今天 · {{ Number(date.slice(5, 7)) }}月{{
+        <view v-if="mode === 'home' && !keyword" class="today-line">
+          <text />今天 · {{ Number(date.slice(5, 7)) }}月{{
             Number(date.slice(8))
           }}日<text />
         </view>
         <template v-if="mode !== 'events'">
           <view class="section-label">
-            {{ keyword ? "找到的手记" : "记得" }}<text>{{ notes.length }}</text><text class="ml-auto text-3 font-normal tracking-normal">
-              {{
-                mode === "home" ? "那些平凡而珍贵的日常" : "按发生日期排列"
-              }}
-            </text>
+            {{ keyword ? "找到的手记" : "记得" }}<text>{{ notes.length }}</text><button role="button" class="text-button ml-auto" @click="switchTab({ url: '/pages/journal/notes' })">
+              全部手记 →
+            </button>
           </view>
-          <NoteList :items="notes" :summary="mode === 'home'" />
+          <NoteList :items="notes" :summary="mode === 'home' && !keyword" />
           <view v-if="!notes.length" class="small-empty">
             {{
               keyword || selectedTags.length || selectedPeople.length
@@ -244,11 +242,6 @@ async function samples() {
             }}
           </view>
         </template>
-        <view v-if="mode === 'home'" class="feed-footer">
-          慢慢过日子，好好记得。<view class="mt-2 text-2.5">
-            如期手记 · 把时光放在心上
-          </view>
-        </view>
       </template>
     </view>
     <view

@@ -4,7 +4,7 @@ import type { TagScope } from '@/domain/tags'
 import { tagLibrary } from '@/domain/tags'
 import { toggleFacet } from '@/domain/record-filters'
 
-defineProps<{ tags: string[], people: string[], compact?: boolean, scope?: TagScope }>()
+defineProps<{ tags: string[], people: string[], compact?: boolean, scope?: TagScope, minimal?: boolean }>()
 const emit = defineEmits<{
   'update:tags': [tags: string[]]
   'update:people': [ids: string[]]
@@ -13,8 +13,8 @@ const store = useJournalStore()
 </script>
 
 <template>
-  <view class="record-filters mb-5" :class="{ 'record-filters-compact': compact }">
-    <view class="field-label">
+  <view class="record-filters mb-5" :class="{ 'record-filters-compact': compact, 'record-filters-minimal': minimal }">
+    <view v-if="!minimal" class="field-label">
       标签
     </view><scroll-view :scroll-x="compact" :show-scrollbar="false">
       <view class="chips filter-tags">
@@ -31,7 +31,7 @@ const store = useJournalStore()
         </button>
       </view>
     </scroll-view>
-    <view class="field-label mt-4">
+    <view v-if="!minimal" class="field-label mt-4">
       重要的人
     </view><scroll-view :scroll-x="compact" :show-scrollbar="false">
       <view class="chips filter-people">
@@ -44,7 +44,7 @@ const store = useJournalStore()
           :aria-pressed="people.includes(person.id)"
           @click="emit('update:people', toggleFacet(people, person.id))"
         >
-          <fg-person-avatar :name="person.name" :src="person.avatar" :size="36" /><text class="person-choice-name">{{ person.name }}</text>
+          <fg-person-avatar :name="person.name" :src="person.avatar" :size="minimal ? 32 : 36" /><text class="person-choice-name">{{ person.name }}</text>
         </button>
       </view>
     </scroll-view>

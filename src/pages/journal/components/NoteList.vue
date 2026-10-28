@@ -2,6 +2,7 @@
 import type { Note } from '@/domain/journal'
 import { computed, ref, watch } from 'vue'
 import { onReachBottom } from '@dcloudio/uni-app'
+import { noteDayLabel } from '@/domain/feed-presentation'
 import NoteCard from './NoteCard.vue'
 
 const props = defineProps<{ items: Note[], summary?: boolean }>()
@@ -11,7 +12,7 @@ const paging = ref<{
   setLocalPaging: (data: Note[]) => Promise<unknown>
 } | null>(null)
 const visible = ref<Note[]>([])
-const source = computed(() => props.summary ? props.items.slice(0, 5) : props.items)
+const source = computed(() => props.summary ? props.items.slice(0, 1) : props.items)
 onReachBottom(() => {
   if (!props.summary)
     paging.value?.pageReachBottom()
@@ -34,6 +35,7 @@ watch(
     v-model="visible"
     :fixed="false"
     :auto="false"
+    :auto-full-height="false"
     :loading-more-enabled="!summary"
     :use-page-scroll="true"
     :default-page-size="summary ? 5 : 20"
@@ -41,12 +43,12 @@ watch(
     :hide-empty-view="true"
     :show-loading-more-no-more-view="false"
   >
-    <view class="timeline">
-      <view v-for="item in visible" :key="item.id" class="timeline-item">
-        <view class="timeline-node past-node">
-          <fg-journal-icon name="pen" />
+    <view class="record-list note-record-list">
+      <view v-for="(item, index) in visible" :key="item.id" class="record-list-item">
+        <view v-if="!summary && (!index || item.date !== visible[index - 1].date)" class="record-group-heading" :class="{ 'record-group-recent': noteDayLabel(item.date).startsWith('今天') || noteDayLabel(item.date).startsWith('昨天') }">
+          <text>{{ noteDayLabel(item.date) }}</text><view class="record-group-line" />
         </view>
-        <NoteCard :note="item" />
+        <NoteCard :note="item" :compact="summary" />
       </view>
     </view>
   </z-paging>

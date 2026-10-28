@@ -158,79 +158,121 @@ page {
   color: var(--cinnabar-text);
   font-weight: 600;
 }
-.timeline {
-  position: relative;
-  margin-left: 14px;
+/* 按日期分组的轻卡片，避免左侧时间轴占用正文宽度。 */
+.record-list-item {
+  margin-bottom: 12px;
 }
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 16px;
-  bottom: 0;
-  width: 1px;
-  background: var(--edge);
-}
-.timeline-item {
-  position: relative;
-  padding-left: 25px;
-  margin-bottom: 15px;
-}
-.timeline-node {
-  position: absolute;
-  left: -15px;
-  top: 17px;
-  width: 30px;
-  height: 30px;
-  border: 1px solid var(--edge);
-  border-radius: 50%;
-  background: var(--paper-0);
+.record-group-heading {
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 1;
+  gap: 12px;
+  margin: 24px 0 12px;
+  color: var(--ink-700);
+  font: 15px/1.6 var(--font-hand);
 }
-.future-node {
-  font: 15px var(--font-display);
+.record-list-item:first-child .record-group-heading {
+  margin-top: 4px;
+}
+.record-group-line {
+  height: 1px;
+  background: var(--edge-soft);
+  flex: 1;
+  min-width: 12px;
+}
+.record-group-recent {
   color: var(--cinnabar-text);
-}
-.past-node {
-  border-color: var(--indigo-300);
-  background: var(--indigo-100);
-}
-.past-node .journal-icon {
-  width: 13px;
-  height: 13px;
 }
 .journal-page .anniversary-card {
   width: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   text-align: left;
-  align-items: center;
-  padding: 16px;
-  gap: 12px;
+  align-items: start;
+  padding: 14px 15px;
+  column-gap: 12px;
+  row-gap: 8px;
   border: 1px solid var(--edge-soft);
-  border-radius: var(--r-md);
+  border-radius: 10px;
   background: var(--paper-1);
+  box-shadow: 0 1px 2px #45342608;
 }
 .journal-page .anniversary-card.urgent {
-  border-left: 3px solid var(--cinnabar-600);
-  box-shadow: var(--sh-2);
+  border-color: var(--edge);
+}
+.card-main {
+  min-width: 0;
+}
+.card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
 }
 .card-title {
-  font-size: 19px;
+  font-size: 18px;
+  font-weight: 500;
   line-height: 1.5;
   overflow-wrap: anywhere;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.stamp {
-  border: 1px solid var(--cinnabar-text);
+.card-title-row > .card-title {
+  flex: 1;
+}
+.card-date {
+  color: var(--ink-500);
+  font: 12px/1.6 var(--font-body);
+  margin-top: 3px;
+}
+.note-card-date {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.card-pin {
+  padding-top: 6px;
+  flex-shrink: 0;
+}
+.card-pin .journal-icon {
+  width: 13px;
+  height: 13px;
+  opacity: 0.6;
+}
+.card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.anniversary-card .card-footer {
+  grid-column: 1 / -1;
+}
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+  align-self: center;
+}
+.card-tag-more {
+  color: var(--ink-500);
+  font: 10px var(--font-body);
+}
+.card-footer .person-tags {
+  margin: 0;
+  max-width: 50%;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+.event-card-tags .note-tag {
   color: var(--cinnabar-text);
-  display: inline-block;
-  font: 11px var(--font-hand);
-  padding: 2px 3px;
-  transform: rotate(-6deg);
-  margin-left: 5px;
-  vertical-align: 2px;
+  background: var(--cinnabar-100);
+  border-radius: 12px;
 }
 .category {
   font-size: 10px;
@@ -249,45 +291,47 @@ page {
 .countdown {
   display: flex;
   flex-direction: column;
-  text-align: center;
-  min-width: 48px;
+  text-align: right;
+  min-width: 50px;
+  padding-top: 3px;
 }
 .count-number {
   color: var(--cinnabar-text);
-  font: 42px/0.95 var(--font-display);
+  font: 34px/1 var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 .count-unit {
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--ink-500);
-  font-size: 11px;
+  font: 11px/1.4 var(--font-body);
 }
 .today-line {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 11px;
+  gap: 12px;
+  font: 12px/1.5 var(--font-hand);
   color: var(--cinnabar-text);
-  margin: 29px 0;
-  letter-spacing: 0.7px;
+  margin: 22px 0 12px;
+  letter-spacing: 0.5px;
 }
 .today-line text {
-  border-top: 1px dashed var(--edge);
+  height: 1px;
+  background: var(--edge-soft);
   flex: 1;
 }
 .journal-page .note-card {
   background: var(--paper-1);
   border: 1px solid var(--edge-soft);
-  border-radius: var(--r-md);
+  border-radius: 10px;
   width: 100%;
-  padding: 17px;
+  padding: 14px;
   text-align: left;
+  box-shadow: 0 1px 2px #45342608;
 }
 .note-excerpt {
   color: var(--ink-700);
-  font-size: 13px;
-  line-height: 1.85;
-  margin-top: 9px;
+  font: 13px/1.8 var(--font-body);
+  margin-top: 6px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -295,26 +339,67 @@ page {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.note-thumbnails {
-  display: flex;
+.note-gallery {
+  display: grid;
   gap: 6px;
-  margin-top: 14px;
-  position: relative;
+  margin-top: 12px;
 }
-.note-thumbnails > image,
-.note-thumbnails > view {
-  width: calc((100% - 12px) / 3);
-  height: 76px;
-  border-radius: 5px;
+.note-photo-cell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  min-width: 0;
+}
+.note-photo-cell > image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+.note-gallery-single .note-photo-cell {
+  aspect-ratio: 16 / 9;
+}
+.note-gallery-pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.note-gallery-pair .note-photo-cell {
+  aspect-ratio: 4 / 3;
+}
+.note-gallery-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.note-gallery-grid .note-photo-cell {
+  aspect-ratio: 1;
+}
+.note-card-compact .note-gallery-single .note-photo-cell {
+  aspect-ratio: 3 / 1;
 }
 .more-images {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  right: 6px;
+  bottom: 6px;
   background: #3b302d88;
   color: white;
-  border-radius: 5px;
-  padding: 0 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 1px 5px;
+}
+.note-card .card-footer {
+  margin-top: 10px;
+}
+.card-place {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-500);
+  font-size: 11px;
+  margin-top: 9px;
+}
+.card-place > text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .note-tag {
   color: var(--indigo-600);
@@ -347,8 +432,8 @@ page {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   align-items: center;
-  height: calc(76px + env(safe-area-inset-bottom));
-  padding: 10px 10px calc(13px + env(safe-area-inset-bottom));
+  height: calc(68px + env(safe-area-inset-bottom));
+  padding: 6px 10px calc(7px + env(safe-area-inset-bottom));
   background: var(--paper-1);
   border-top: 1px solid var(--edge-soft);
 }
@@ -1518,4 +1603,102 @@ page {
 .events-workspace .section-label > text:first-of-type {
   color: var(--ink-500);
   font: 12px var(--font-body);
+}
+
+/* 列表与首页共用尺寸，表单和人物详情保留各自布局。 */
+.feed-page .page-title {
+  font-size: 28px;
+  letter-spacing: 1px;
+}
+.feed-page .journal-appbar {
+  padding: calc(24px + env(safe-area-inset-top)) 20px 20px;
+}
+.feed-page .eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+.feed-page .section-label {
+  margin-bottom: 12px;
+  color: var(--ink-900);
+  font: 15px/1.5 var(--font-hand);
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.home-workspace .section-label .text-button {
+  min-height: 36px;
+  font-size: 12px;
+}
+.home-workspace .warmbar {
+  min-height: 60px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+.warm-copy {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.home-workspace .warmbar .journal-icon {
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+}
+.home-workspace .warm-number {
+  font-size: 27px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.person-tags-compact {
+  gap: 4px;
+}
+.journal-page .person-tags-compact .person-choice {
+  width: 32px;
+  padding: 0;
+  gap: 2px;
+}
+.person-tags-compact .person-choice-name {
+  font-size: 10px;
+  line-height: 1.3;
+}
+.record-filters-minimal .filter-tags .chip {
+  min-height: 30px;
+  padding: 4px 12px;
+  border-radius: 18px;
+  font-size: 12px;
+  border-color: transparent;
+  background: var(--paper-2);
+}
+.record-filters-minimal .filter-tags .chip.selected {
+  background: var(--cinnabar-100);
+  color: var(--cinnabar-text);
+  border-color: var(--cinnabar-500);
+}
+.record-filters-minimal > scroll-view + scroll-view {
+  margin-top: 12px;
+}
+.record-filters-minimal .filter-people {
+  gap: 10px;
+  align-items: flex-start;
+  padding: 4px 2px;
+}
+.record-filters-minimal .person-choice {
+  width: 46px;
+  gap: 4px;
+}
+@media (max-width: 360px) {
+  .journal-page .note-card,
+  .journal-page .anniversary-card {
+    padding: 12px;
+  }
+  .card-title {
+    font-size: 17px;
+  }
+  .count-number {
+    font-size: 30px;
+  }
+  .home-workspace .warm-number {
+    font-size: 24px;
+  }
 }

@@ -2,6 +2,7 @@
 import type { Anniversary } from '@/domain/journal'
 import { computed, ref, watch } from 'vue'
 import { onReachBottom } from '@dcloudio/uni-app'
+import { eventMonth, monthHeading } from '@/domain/feed-presentation'
 import AnniversaryCard from './AnniversaryCard.vue'
 
 const props = defineProps<{ items: Anniversary[], summary?: boolean }>()
@@ -34,6 +35,7 @@ watch(
     v-model="visible"
     :fixed="false"
     :auto="false"
+    :auto-full-height="false"
     :loading-more-enabled="!summary"
     :use-page-scroll="true"
     :default-page-size="summary ? 5 : 20"
@@ -41,10 +43,10 @@ watch(
     :hide-empty-view="true"
     :show-loading-more-no-more-view="false"
   >
-    <view class="timeline">
-      <view v-for="item in visible" :key="item.id" class="timeline-item">
-        <view class="timeline-node future-node">
-          {{ item.date.slice(8) }}
+    <view class="record-list event-record-list">
+      <view v-for="(item, index) in visible" :key="item.id" class="record-list-item">
+        <view v-if="!summary && (!index || eventMonth(item) !== eventMonth(visible[index - 1]))" class="record-group-heading">
+          <text>{{ monthHeading(eventMonth(item)) }}</text><view class="record-group-line" />
         </view>
         <AnniversaryCard :event="item" />
       </view>
