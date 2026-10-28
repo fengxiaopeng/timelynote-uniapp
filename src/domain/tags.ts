@@ -11,12 +11,17 @@ export function normalizeTag(raw: string) {
     throw new Error('标签名称请控制在 20 个字以内')
   return tag
 }
-export function addTag(data: JournalData, raw: string) {
+export type TagScope = 'note' | 'event'
+export function tagLibrary(data: JournalData, scope: TagScope = 'note') {
+  return scope === 'event' ? data.eventTagLibrary : data.tagLibrary
+}
+export function addTag(data: JournalData, raw: string, scope: TagScope = 'note') {
   const tag = normalizeTag(raw)
-  const existing = data.tagLibrary.find(
+  const library = tagLibrary(data, scope)
+  const existing = library.find(
     item => item.toLocaleLowerCase() === tag.toLocaleLowerCase(),
   )
   if (!existing)
-    data.tagLibrary.push(tag)
+    library.push(tag)
   return existing || tag
 }

@@ -98,6 +98,7 @@ export function upsertPerson(
       yearUnknown: birthday.yearUnknown,
       repeat: 'yearly',
       category: '生日',
+      tags: [...new Set([...(event.tags || []), '生日'])],
       birthdayPersonId: saved.id,
       personIds: [...new Set([...(event.personIds || []), saved.id])],
     })

@@ -106,7 +106,9 @@ async function remove() {
           · {{ anniversaryYear }}
           {{ event.category === "生日" ? "岁生日" : "周年" }}
         </template>
-      </text><button
+      </text><button v-if="event" role="button" class="text-button strong" @click="navigate({ url: `/pages/journal/event-edit?id=${encodeURIComponent(id)}` })">
+        编辑
+      </button><button
         v-if="event"
         role="button"
         class="icon-button"
@@ -146,8 +148,11 @@ async function remove() {
             一起记得
           </view><fg-person-tags :ids="event.personIds" />
         </view>
+        <view v-if="event.tags?.length" class="mb-5 flex flex-wrap gap-2">
+          <text v-for="tag in event.tags" :key="tag" class="note-tag">{{ tag }}</text>
+        </view>
         <view
-          v-if="event.description || event.images?.length || event.tags?.length"
+          v-if="event.description || event.images?.length"
           class="paper event-story"
         >
           <view class="field-label">
@@ -167,15 +172,8 @@ async function remove() {
               @click="previewImage({ urls: event.images || [], current: src })"
             />
           </view>
-          <view v-if="event.tags?.length" class="mt-4 flex flex-wrap gap-2">
-            <text v-for="tag in event.tags" :key="tag" class="note-tag">
-              {{
-                tag
-              }}
-            </text>
-          </view>
         </view><view v-if="notes.length" class="section-label mt-6">
-          以往的手记<text>{{ notes.length }}</text>
+          这一天的手记<text>{{ notes.length }}</text>
         </view><view v-for="year in groups" :key="year" class="mb-7">
           <view class="year-label">
             {{ year }}<text>年</text>
@@ -192,13 +190,8 @@ async function remove() {
               </view><NoteCard :note="note" />
             </view>
           </view>
-        </view><view
-          v-if="
-            !event.description && !event.images?.length && !event.tags?.length
-          "
-          class="small-empty serif"
-        >
-          给这一天留一点文字，<br>或者几张值得记得的照片。
+        </view><view v-if="!notes.length" class="small-empty serif">
+          写一篇手记，记下与这一天有关的回忆。
         </view><view class="muted mt-6 text-center text-3">
           最初的日子 ·
           {{
@@ -216,11 +209,11 @@ async function remove() {
           class="primary-button flex-1"
           @click="
             navigate({
-              url: `/pages/journal/event-edit?id=${encodeURIComponent(id)}&section=story`,
+              url: `/pages/journal/compose?eventId=${encodeURIComponent(id)}`,
             })
           "
         >
-          <fg-journal-icon name="pen" />丰富这一天
+          <fg-journal-icon name="pen" />写一篇手记
         </button>
       </view>
     </template>

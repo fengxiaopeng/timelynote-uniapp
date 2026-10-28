@@ -59,7 +59,8 @@ describe('直接点选与新建标签', () => {
       images: ['data:image/jpeg;base64,AA=='],
     })
     expect(validJournal(data)).toBe(true)
-    expect(migrateJournal(data)?.tagLibrary).toContain('仪式感')
+    expect(migrateJournal(data)?.eventTagLibrary).toContain('仪式感')
+    expect(migrateJournal(data)?.tagLibrary).not.toContain('仪式感')
     expect(validJournal({ ...data, tagLibrary: ['日常', 3] })).toBe(false)
     expect(
       validJournal({
@@ -70,4 +71,30 @@ describe('直接点选与新建标签', () => {
       }),
     ).toBe(false)
   })
+})
+
+it('手记和纪念日标签独立新建，同名标签各自复用', () => {
+  const data = emptyJournal()
+  addTag(data, '手记专属')
+  addTag(data, '生日计划', 'event')
+  expect(data.tagLibrary).not.toContain('生日计划')
+  expect(data.eventTagLibrary).not.toContain('手记专属')
+  expect(addTag(data, 'Event', 'event')).toBe('Event')
+  expect(addTag(data, 'event', 'event')).toBe('Event')
+})
+it('旧共用库按纪念日已用标签迁移，旧分类作为专属标签保留', () => {
+  const data = emptyJournal()
+  data.tagLibrary.push('仅手记', '旧纪念日')
+  data.notes.push({ ...blankNote(), tags: ['仅手记'] })
+  data.anniversaries.push({ id: 'old', title: '旧日子', date: '2020-01-01', category: '成长', repeat: 'yearly', reminderDays: 7, reminderTime: '09:00', pinned: false, description: '旧文字', images: ['data:image/jpeg;base64,AA=='], tags: ['旧纪念日'] })
+  const { eventTagLibrary: _, ...legacy } = data
+  const migrated = migrateJournal(legacy)!
+  expect(migrated.eventTagLibrary).toContain('旧纪念日')
+  expect(migrated.eventTagLibrary).not.toContain('仅手记')
+  expect(migrated.tagLibrary).not.toContain('旧纪念日')
+  expect(migrated.anniversaries[0].tags).toEqual(['成长', '旧纪念日'])
+  expect(migrated.anniversaries[0].description).toBe('旧文字')
+  expect(migrated.anniversaries[0].images).toEqual(['data:image/jpeg;base64,AA=='])
+  expect(migrateJournal({ ...legacy, eventTagLibrary: [3] })).toBeNull()
+  expect(migrateJournal(migrated)).toEqual(migrated)
 })

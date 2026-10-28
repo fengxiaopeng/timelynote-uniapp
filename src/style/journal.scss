@@ -1502,3 +1502,20 @@ page {
 .filter-people {
   align-items: center;
 }
+
+.events-appbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--paper-0);
+}
+.events-workspace .section-label {
+  font-family: var(--font-hand);
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: var(--ink-900);
+}
+.events-workspace .section-label > text:first-of-type {
+  color: var(--ink-500);
+  font: 12px var(--font-body);
+}

@@ -38,7 +38,7 @@ export interface Note {
   tags: string[]
   images: string[]
   place: string
-  /** 仅保留旧版历史归属，新手记不再建立纪念日关联。 */
+  /** 从纪念日快速创建时保留来源关联，普通手记可独立存在。 */
   anniversaryId: string
   occurrence: string
   sample?: boolean
@@ -50,6 +50,7 @@ export interface Preferences {
 }
 export interface JournalData {
   tagLibrary: string[]
+  eventTagLibrary: string[]
   people: Person[]
   anniversaries: Anniversary[]
   notes: Note[]
@@ -61,6 +62,7 @@ export const defaultTags = ['日常', '旅行', '第一次', '成长', '纪念']
 export function emptyJournal(): JournalData {
   return {
     tagLibrary: [...defaultTags],
+    eventTagLibrary: categories.slice(1),
     people: [],
     anniversaries: [],
     notes: [],
@@ -182,6 +184,7 @@ export function validJournal(value: unknown): value is JournalData {
   return (
     record(value)
     && stringArray(value.tagLibrary)
+    && stringArray(value.eventTagLibrary)
     && Array.isArray(value.people)
     && value.people.every(validPerson)
     && Array.isArray(value.anniversaries)
@@ -224,6 +227,7 @@ export function migrateJournal(value: unknown): JournalData | null {
     ...value,
     tagLibrary:
       value.tagLibrary === undefined ? [...defaultTags] : value.tagLibrary,
+    eventTagLibrary: value.eventTagLibrary === undefined ? categories.slice(1) : value.eventTagLibrary,
     people: value.people === undefined
       ? []
       : Array.isArray(value.people)
@@ -245,16 +249,26 @@ export function migrateJournal(value: unknown): JournalData | null {
   const result: JournalData = JSON.parse(JSON.stringify(next))
   for (const event of result.anniversaries) {
     event.tags ??= []
+    if (value.eventTagLibrary === undefined && event.category)
+      event.tags = [...new Set([event.category, ...event.tags])]
     event.images ??= []
+  }
+  if (value.eventTagLibrary === undefined) {
+    const eventTags = new Set(result.anniversaries.flatMap(event => event.tags || []))
+    const noteTags = new Set([...result.notes.flatMap(note => note.tags), ...(result.draft?.tags || [])])
+    result.tagLibrary = result.tagLibrary.filter(tag => !eventTags.has(tag) || noteTags.has(tag) || defaultTags.includes(tag))
   }
   result.tagLibrary = [
     ...new Set([
       ...result.tagLibrary,
       ...result.notes.flatMap(note => note.tags),
       ...(result.draft?.tags || []),
-      ...result.anniversaries.flatMap(event => event.tags || []),
     ]),
   ]
+  result.eventTagLibrary = [...new Set([
+    ...result.eventTagLibrary,
+    ...result.anniversaries.flatMap(event => event.tags || []),
+  ])]
   return result
 }
 

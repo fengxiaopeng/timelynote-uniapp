@@ -33,10 +33,10 @@ defineProps<{
         {{ dateLabel(nextOccurrence(event)) }}
       </view>
       <view class="mt-2 flex gap-2">
-        <text class="category">{{ event.category }}</text><text v-if="event.sample" class="sample-label">示例</text><text v-if="event.pinned" class="sample-label">置顶</text>
+        <text v-if="event.sample" class="sample-label">示例</text><text v-if="event.pinned" class="sample-label">置顶</text>
       </view>
       <view v-if="event.tags?.length" class="mt-2 flex flex-wrap gap-2">
-        <text v-for="tag in event.tags.slice(0, 3)" :key="tag" class="note-tag">{{ tag }}</text>
+        <text v-for="tag in event.tags" :key="tag" class="note-tag">{{ tag }}</text>
       </view>
       <fg-person-tags :ids="event.personIds" />
     </view>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Anniversary } from '@/domain/journal'
 import { onLoad } from '@dcloudio/uni-app'
-import { computed, nextTick, ref } from 'vue'
+import { computed, ref } from 'vue'
 import {
   categories,
   dateLabel,
@@ -31,7 +31,7 @@ const event = ref<Anniversary>({
   reminderTime: '09:00',
   pinned: false,
   description: '',
-  tags: [],
+  tags: ['纪念'],
   images: [],
 })
 const cells = computed(() => {
@@ -75,10 +75,6 @@ onLoad(async (options) => {
   }
   initial.value = JSON.stringify(event.value)
   ready.value = true
-  if (options?.section === 'story') {
-    await nextTick()
-    uni.pageScrollTo({ selector: '#event-story', duration: 200 })
-  }
 })
 function changeMonth(amount: number) {
   const [year, m] = month.value.split('-').map(Number)
@@ -134,6 +130,9 @@ async function save() {
     ) {
       return
     }
+    event.value.category = event.value.birthdayPersonId || event.value.tags?.includes('生日')
+      ? '生日'
+      : categories.slice(1).find(tag => event.value.tags?.includes(tag)) || '纪念'
     await store.saveEvent({
       ...event.value,
       date: event.value.yearUnknown
@@ -196,21 +195,7 @@ async function save() {
         v-model="event.personIds"
         :locked-ids="event.birthdayPersonId ? [event.birthdayPersonId] : []"
       />
-      <view class="field-label mt-7">
-        这是什么日子
-      </view><view class="chips">
-        <button
-          v-for="category in categories.slice(1)"
-          :key="category"
-          role="button"
-          class="chip"
-          :class="{ selected: event.category === category }"
-          :disabled="!!event.birthdayPersonId"
-          @click="event.category = category"
-        >
-          {{ category }}
-        </button>
-      </view>
+      <fg-tag-picker v-model="event.tags" label="标签" scope="event" :locked-tags="event.birthdayPersonId ? ['生日'] : []" />
       <view class="field-label mt-7">
         选一个日子 · 公历
       </view>
@@ -340,20 +325,6 @@ async function save() {
       <view class="notice mt-3">
         提醒规则会保存在本机，当前版本暂不发送系统通知。
       </view>
-      <view id="event-story" />
-      <label class="field-label mt-7" for="event-description">关于这一天（可选）</label><textarea
-        id="event-description"
-        v-model="event.description"
-        class="lined-input"
-        :auto-height="true"
-        placeholder="期待、安排，或者这一天想留下的故事…"
-        :maxlength="10000"
-      />
-      <view class="field-label mt-5">
-        这一天的照片
-      </view>
-      <fg-photo-picker v-model="event.images" />
-      <fg-tag-picker v-model="event.tags" label="给这天贴个标签" />
       <button
         role="button"
         class="primary-button my-6"

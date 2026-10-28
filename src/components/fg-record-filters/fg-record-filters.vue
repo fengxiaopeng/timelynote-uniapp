@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useJournalStore } from '@/store/journal'
+import type { TagScope } from '@/domain/tags'
+import { tagLibrary } from '@/domain/tags'
 import { toggleFacet } from '@/domain/record-filters'
 
-defineProps<{ tags: string[], people: string[], compact?: boolean }>()
+defineProps<{ tags: string[], people: string[], compact?: boolean, scope?: TagScope }>()
 const emit = defineEmits<{
   'update:tags': [tags: string[]]
   'update:people': [ids: string[]]
@@ -25,7 +27,7 @@ const store = useJournalStore()
         >
           {{ compact ? "全部" : "全部标签" }}
         </button><button
-          v-for="tag in store.data.tagLibrary"
+          v-for="tag in tagLibrary(store.data, scope)"
           :key="tag"
           role="button"
           class="chip"

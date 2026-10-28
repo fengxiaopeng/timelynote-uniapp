@@ -9,7 +9,8 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { countdown, emptyJournal, today } from '@/domain/journal'
 import { cloneJournal, journalRepository } from '@/repositories/journal'
-import { addTag, normalizeTag } from '@/domain/tags'
+import type { TagScope } from '@/domain/tags'
+import { addTag, normalizeTag, tagLibrary } from '@/domain/tags'
 import { removePerson, unlinkEvent, upsertPerson } from '@/domain/people'
 import { useLocalSessionStore } from './local-session'
 
@@ -52,16 +53,16 @@ export const useJournalStore = defineStore('journal', () => {
     mutationQueue = task.catch(() => {})
     return task
   }
-  async function saveTag(raw: string) {
+  async function saveTag(raw: string, scope: TagScope = 'note') {
     const normalized = normalizeTag(raw)
-    const existing = data.value.tagLibrary.find(
+    const existing = tagLibrary(data.value, scope).find(
       tag => tag.toLocaleLowerCase() === normalized.toLocaleLowerCase(),
     )
     if (existing)
       return existing
     let saved = normalized
     await update((next) => {
-      saved = addTag(next, normalized)
+      saved = addTag(next, normalized, scope)
     })
     return saved
   }
@@ -93,7 +94,9 @@ export const useJournalStore = defineStore('journal', () => {
           item.pinned = false
         })
       }
-      for (const tag of event.tags || []) addTag(next, tag)
+      if (event.birthdayPersonId)
+        event.tags = [...new Set([...(event.tags || []), '生日'])]
+      for (const tag of event.tags || []) addTag(next, tag, 'event')
       const index = next.anniversaries.findIndex(
         item => item.id === event.id,
       )
@@ -104,6 +107,8 @@ export const useJournalStore = defineStore('journal', () => {
   }
   async function saveNote(note: Note) {
     await update((next) => {
+      if (note.anniversaryId && !next.anniversaries.some(event => event.id === note.anniversaryId))
+        note = { ...note, anniversaryId: '', occurrence: '' }
       for (const tag of note.tags) addTag(next, tag)
       const index = next.notes.findIndex(item => item.id === note.id)
       if (index < 0)
@@ -259,6 +264,10 @@ export const useJournalStore = defineStore('journal', () => {
           sample: true,
         },
       )
+      for (const event of next.anniversaries) {
+        event.tags ??= [event.category]
+        for (const tag of event.tags) addTag(next, tag, 'event')
+      }
     })
   }
   return {

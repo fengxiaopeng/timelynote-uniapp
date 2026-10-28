@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onShow } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
-import { categories, countdown, daysBetween, today } from '@/domain/journal'
+import { countdown, daysBetween, today } from '@/domain/journal'
 import { matchesRecordFacets } from '@/domain/record-filters'
 import { peopleText } from '@/domain/people'
 import { useJournalStore } from '@/store/journal'
@@ -12,9 +12,9 @@ import { navigate, switchTab } from '@/utils/journal-ui'
 
 const props = defineProps<{ mode: 'home' | 'events' }>()
 const store = useJournalStore()
+const owner = ref(store.owner)
 const keyword = ref('')
 const searchOpen = ref(false)
-const category = ref('全部')
 const selectedTags = ref<string[]>([])
 const selectedPeople = ref<string[]>([])
 const reminderOpen = ref(false)
@@ -42,8 +42,7 @@ const pinned = computed(() =>
 const matchingEvents = computed(() =>
   store.sortedEvents.filter(
     event =>
-      (category.value === '全部' || category.value === event.category)
-      && matchesRecordFacets(event, selectedTags.value, selectedPeople.value)
+      matchesRecordFacets(event, selectedTags.value, selectedPeople.value)
       && `${event.title} ${event.description} ${event.category} ${(event.tags || []).join(' ')} ${peopleText(store.data, event.personIds)}`.includes(
         keyword.value.trim(),
       ),
@@ -66,7 +65,7 @@ const notes = computed(() =>
   ),
 )
 const hasData = computed(
-  () => store.data.notes.length + store.data.anniversaries.length > 0,
+  () => props.mode === 'events' ? store.data.anniversaries.length > 0 : store.data.notes.length + store.data.anniversaries.length > 0,
 )
 const upcoming = computed(() =>
   store.sortedEvents
@@ -74,10 +73,16 @@ const upcoming = computed(() =>
     .slice(0, 5),
 )
 onShow(() => {
+  if (owner.value !== store.owner) {
+    selectedTags.value = []
+    selectedPeople.value = []
+    keyword.value = ''
+    owner.value = store.owner
+  }
   date.value = today()
   void store.load().then(() => {
     selectedPeople.value = selectedPeople.value.filter(id => store.data.people.some(person => person.id === id))
-    selectedTags.value = selectedTags.value.filter(tag => store.data.tagLibrary.includes(tag))
+    selectedTags.value = selectedTags.value.filter(tag => (props.mode === 'events' ? store.data.eventTagLibrary : store.data.tagLibrary).includes(tag))
   })
 })
 async function samples() {
@@ -92,8 +97,8 @@ async function samples() {
 </script>
 
 <template>
-  <view class="journal-page feed-page">
-    <view class="journal-appbar">
+  <view class="journal-page feed-page" :class="{ 'events-workspace': mode === 'events' }">
+    <view class="journal-appbar" :class="{ 'events-appbar': mode === 'events' }">
       <view>
         <view class="page-title">
           {{
@@ -107,6 +112,7 @@ async function samples() {
       </view>
       <view class="flex gap-1">
         <button
+          v-if="mode === 'home'"
           role="button"
           class="icon-button"
           aria-label="搜索"
@@ -137,7 +143,7 @@ async function samples() {
       </view>
     </view>
     <view class="journal-content">
-      <fg-record-filters v-if="mode !== 'home'" v-model:tags="selectedTags" v-model:people="selectedPeople" />
+      <fg-record-filters v-if="mode === 'events'" v-model:tags="selectedTags" v-model:people="selectedPeople" compact scope="event" />
       <view v-if="searchOpen" class="search-box">
         <fg-journal-icon name="search" /><input
           v-model="keyword"
@@ -164,18 +170,6 @@ async function samples() {
           }}
         </text><text>天</text>
       </view>
-      <view v-if="mode === 'events'" class="chips mb-5">
-        <button
-          v-for="item in categories"
-          :key="item"
-          role="button"
-          class="chip"
-          :class="{ selected: category === item }"
-          @click="category = item"
-        >
-          {{ item }}
-        </button>
-      </view>
       <view v-if="!hasData" class="empty-welcome">
         <view class="empty-mark">
           记
@@ -191,6 +185,7 @@ async function samples() {
         >
           添加第一个纪念日
         </button><button
+          v-if="mode === 'home'"
           role="button"
           class="outline-button mt-3"
           @click="navigate({ url: '/pages/journal/compose' })"
@@ -210,7 +205,7 @@ async function samples() {
                 ? "找到的日子"
                 : "将至"
               : "重要的日子"
-          }}<text>{{ events.length }}</text><button
+          }}<text>{{ events.length }}{{ mode === 'events' ? '个纪念日' : '' }}</text><button
             v-if="mode === 'home'"
             role="button"
             class="text-button ml-auto"
@@ -222,7 +217,7 @@ async function samples() {
         <AnniversaryList :items="events" :summary="mode === 'home'" />
         <view v-if="!events.length" class="small-empty">
           {{
-            keyword || selectedTags.length || selectedPeople.length || category !== "全部"
+            keyword || selectedTags.length || selectedPeople.length
               ? "没有找到对应的日子，换个条件试试。"
               : "还没有将至的日子，给未来留一点期待吧。"
           }}
@@ -249,7 +244,7 @@ async function samples() {
             }}
           </view>
         </template>
-        <view class="feed-footer">
+        <view v-if="mode === 'home'" class="feed-footer">
           慢慢过日子，好好记得。<view class="mt-2 text-2.5">
             如期手记 · 把时光放在心上
           </view>

@@ -114,7 +114,7 @@ it('并行新增标签和保存手记不会互相覆盖，失败后仍可继续�
   expect(store.data.tagLibrary).toContain('下次再记')
 })
 
-it('纪念日独立保存文字、照片和标签，不创建手记；生日修改也保留这些内容', async () => {
+it('保留旧纪念日文字照片及专属标签；生日标签不可丢失', async () => {
   const store = useJournalStore()
   const person = {
     id: 'child',
@@ -133,14 +133,15 @@ it('纪念日独立保存文字、照片和标签，不创建手记；生日修�
   }
   await store.saveEvent(event)
   expect(store.data.notes).toHaveLength(0)
-  expect(store.data.tagLibrary).toContain('生日计划')
+  expect(store.data.eventTagLibrary).toContain('生日计划')
+  expect(store.data.tagLibrary).not.toContain('生日计划')
   await store.savePerson(store.data.people[0], {
     date: '2026-01-21',
     yearUnknown: false,
   })
   expect(store.data.anniversaries[0].description).toBe('一起准备生日蛋糕')
   expect(store.data.anniversaries[0].images).toEqual(event.images)
-  expect(store.data.anniversaries[0].tags).toEqual(event.tags)
+  expect(store.data.anniversaries[0].tags).toEqual([...event.tags, '生日'])
 })
 
 it('同名标签并行创建复用同一大小写，切换账号后标签独立', async () => {
@@ -154,4 +155,27 @@ it('同名标签并行创建复用同一大小写，切换账号后标签独立'
   useLocalSessionStore().session = { phone: '13800138000', mode: 'local-demo' }
   await store.load()
   expect(store.data.tagLibrary).not.toContain('Travel')
+})
+
+it('纪念日来源手记独立保存，纪念日移除后保留正文并解除关联', async () => {
+  const store = useJournalStore()
+  await store.addSamples()
+  const event = store.data.anniversaries[0]
+  const note = { ...blankNote(), title: event.title, content: '这一年的回忆', personIds: [...(event.personIds || [])], anniversaryId: event.id }
+  await store.saveNote(note)
+  expect(store.data.notes.find(item => item.id === note.id)?.anniversaryId).toBe(event.id)
+  await store.deleteEvent(event.id)
+  expect(store.data.notes.find(item => item.id === note.id)?.content).toBe('这一年的回忆')
+  expect(store.data.notes.find(item => item.id === note.id)?.anniversaryId).toBe('')
+  const stale = { ...blankNote(), content: '编辑期间纪念日被删除', anniversaryId: event.id }
+  await store.saveNote(stale)
+  expect(store.data.notes.find(item => item.id === stale.id)?.anniversaryId).toBe('')
+})
+it('手记与纪念日标签并行新建，各自持久化且不互相覆盖', async () => {
+  const store = useJournalStore()
+  await Promise.all([store.saveTag('手记独有'), store.saveTag('纪念日独有', 'event')])
+  expect(store.data.tagLibrary).toContain('手记独有')
+  expect(store.data.tagLibrary).not.toContain('纪念日独有')
+  expect(store.data.eventTagLibrary).toContain('纪念日独有')
+  expect(store.data.eventTagLibrary).not.toContain('手记独有')
 })

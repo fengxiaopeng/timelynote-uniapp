@@ -30,6 +30,17 @@ onLoad(async (options) => {
   else if (options?.draft === '1' && store.data.draft) {
     note.value = JSON.parse(JSON.stringify(store.data.draft))
   }
+  if (!options?.id && options?.draft !== '1' && typeof options?.eventId === 'string') {
+    const source = store.data.anniversaries.find(event => event.id === options.eventId)
+    if (!source) {
+      toast('这个纪念日已不存在')
+      back()
+      return
+    }
+    note.value.title = source.title
+    note.value.personIds = [...(source.personIds || [])]
+    note.value.anniversaryId = source.id
+  }
   if (
     typeof options?.personId === 'string'
     && store.data.people.some(person => person.id === options.personId)
@@ -138,6 +149,9 @@ async function save() {
     <view v-if="ready" class="journal-content form-content">
       <view class="serif mb-6 mt-3 text-7">
         今天，有什么想留下？
+      </view>
+      <view v-if="note.anniversaryId" class="source-event-label muted mb-5 text-3">
+        来自纪念日 · {{ store.data.anniversaries.find(event => event.id === note.anniversaryId)?.title || "已删除的纪念日" }}
       </view>
       <label class="field-label" for="note-title">给这一刻起个名字（可选）</label><input
         id="note-title"

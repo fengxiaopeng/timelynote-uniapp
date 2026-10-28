@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useJournalStore } from '@/store/journal'
+import type { TagScope } from '@/domain/tags'
+import { tagLibrary } from '@/domain/tags'
 import { toast } from '@/utils/journal-ui'
 
 const props = withDefaults(
-  defineProps<{ modelValue?: string[], label?: string }>(),
-  { label: '给回忆贴个标签' },
+  defineProps<{ modelValue?: string[], label?: string, scope?: TagScope, lockedTags?: string[] }>(),
+  { label: '给回忆贴个标签', scope: 'note' },
 )
 const emit = defineEmits<{ 'update:modelValue': [tags: string[]] }>()
 const store = useJournalStore()
@@ -13,9 +15,11 @@ const adding = ref(false)
 const name = ref('')
 const busy = ref(false)
 const tags = computed(() => [
-  ...new Set([...store.data.tagLibrary, ...(props.modelValue || [])]),
+  ...new Set([...tagLibrary(store.data, props.scope), ...(props.modelValue || [])]),
 ])
 function toggle(tag: string) {
+  if (props.lockedTags?.includes(tag))
+    return
   const selected = props.modelValue || []
   emit(
     'update:modelValue',
@@ -29,7 +33,7 @@ async function create() {
     return
   busy.value = true
   try {
-    const tag = await store.saveTag(name.value)
+    const tag = await store.saveTag(name.value, props.scope)
     emit('update:modelValue', [...new Set([...(props.modelValue || []), tag])])
     name.value = ''
     adding.value = false
@@ -57,6 +61,7 @@ async function create() {
             class="chip"
             :class="{ selected: modelValue?.includes(tag) }"
             :aria-pressed="!!modelValue?.includes(tag)"
+            :disabled="props.lockedTags?.includes(tag)"
             @click="toggle(tag)"
           >
             {{ tag }}{{ modelValue?.includes(tag) ? " ✓" : "" }}
