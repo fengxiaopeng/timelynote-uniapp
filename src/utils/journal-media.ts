@@ -1,13 +1,37 @@
+/** 相册与相机共用压缩规则，持久化的图片统一为 JPEG data URL。 */
+export function encodePhotoFrame(
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+) {
+  if (!width || !height)
+    throw new Error('画面还在准备中，请稍后再拍')
+  const scale = Math.min(1, 1200 / Math.max(width, height))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(width * scale)
+  canvas.height = Math.round(height * scale)
+  const context = canvas.getContext('2d')
+  if (!context)
+    throw new Error('当前浏览器无法处理图片')
+  context.fillStyle = '#fff'
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  context.drawImage(source, 0, 0, canvas.width, canvas.height)
+  return canvas.toDataURL('image/jpeg', 0.72)
+}
+
 /** H5 图片转换为压缩 data URL，刷新后仍能显示；所有浏览器 API 位于平台接缝。 */
 export function chooseLocalPhotos(
   onResult: (images: string[]) => void,
   onError: (error: Error) => void,
+  options: { source?: 'album' | 'camera', multiple?: boolean } = {},
 ) {
   // #ifdef H5
   const picker = document.createElement('input')
   picker.type = 'file'
   picker.accept = 'image/jpeg,image/png,image/webp'
-  picker.multiple = true
+  picker.multiple = options.multiple ?? options.source !== 'camera'
+  if (options.source === 'camera')
+    picker.setAttribute('capture', 'environment')
   picker.onchange = async () => {
     try {
       const files = Array.from(picker.files || [])
@@ -27,17 +51,7 @@ export function chooseLocalPhotos(
             img.onerror = () => reject(new Error('照片读取失败，请重新选择'))
             img.src = url
           })
-          const scale = Math.min(1, 1200 / Math.max(img.width, img.height))
-          const canvas = document.createElement('canvas')
-          canvas.width = Math.round(img.width * scale)
-          canvas.height = Math.round(img.height * scale)
-          const ctx = canvas.getContext('2d')
-          if (!ctx)
-            throw new Error('当前浏览器无法处理图片')
-          ctx.fillStyle = '#fff'
-          ctx.fillRect(0, 0, canvas.width, canvas.height)
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-          images.push(canvas.toDataURL('image/jpeg', 0.72))
+          images.push(encodePhotoFrame(img, img.width, img.height))
         }
         finally {
           URL.revokeObjectURL(url)

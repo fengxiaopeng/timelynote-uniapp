@@ -41,9 +41,9 @@ export const nativeTabbarList: NativeTabBarItem[] = [
 // TODO: 3/3. 使用 CUSTOM_TABBAR 时，更新下面的 tabbar 配置
 // 如果需要配置鼓包，需要在 'tabbar/store.ts' 里面设置，最后在 `tabbar/index.vue` 里面更改鼓包的图片
 export const customTabbarList: CustomTabBarItem[] = [
-  { text: '如期', pagePath: 'pages/index/index', iconType: 'unocss', icon: 'i-carbon-time' },
-  { text: '纪念', pagePath: 'pages/journal/events', iconType: 'unocss', icon: 'i-carbon-calendar' },
-  { text: '手记', pagePath: 'pages/journal/notes', iconType: 'unocss', icon: 'i-carbon-notebook' },
+  { text: '首页', pagePath: 'pages/index/index', iconType: 'unocss', icon: 'i-carbon-time' },
+  { text: '如期', pagePath: 'pages/journal/events', iconType: 'unocss', icon: 'i-carbon-alarm' },
+  { text: '手记', pagePath: 'pages/journal/notes', iconType: 'unocss', icon: 'i-carbon-calendar' },
   { text: '我的', pagePath: 'pages/me/me', iconType: 'unocss', icon: 'i-carbon-user' },
 ]
 

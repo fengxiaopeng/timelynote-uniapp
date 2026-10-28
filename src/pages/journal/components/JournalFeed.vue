@@ -2,6 +2,7 @@
 import { onShow } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 import { categories, countdown, daysBetween, today } from '@/domain/journal'
+import { matchesRecordFacets } from '@/domain/record-filters'
 import { peopleText } from '@/domain/people'
 import { useJournalStore } from '@/store/journal'
 import AnniversaryCard from './AnniversaryCard.vue'
@@ -15,7 +16,8 @@ const keyword = ref('')
 const searchOpen = ref(false)
 const category = ref('全部')
 const photoOnly = ref(false)
-const selectedPerson = ref('')
+const selectedTags = ref<string[]>([])
+const selectedPeople = ref<string[]>([])
 const month = ref('')
 const reminderOpen = ref(false)
 const date = ref(today())
@@ -43,7 +45,7 @@ const matchingEvents = computed(() =>
   store.sortedEvents.filter(
     event =>
       (category.value === '全部' || category.value === event.category)
-      && (!selectedPerson.value || event.personIds?.includes(selectedPerson.value))
+      && matchesRecordFacets(event, selectedTags.value, selectedPeople.value)
       && `${event.title} ${event.description} ${event.category} ${(event.tags || []).join(' ')} ${peopleText(store.data, event.personIds)}`.includes(
         keyword.value.trim(),
       ),
@@ -62,7 +64,7 @@ const notes = computed(() =>
       `${note.title} ${note.content} ${note.tags.join(' ')} ${note.place} ${peopleText(store.data, note.personIds)}`.includes(
         keyword.value.trim(),
       )
-      && (!selectedPerson.value || note.personIds?.includes(selectedPerson.value))
+      && matchesRecordFacets(note, selectedTags.value, selectedPeople.value)
       && (!photoOnly.value || note.images.length > 0)
       && (!month.value || note.date.startsWith(month.value)),
   ),
@@ -81,8 +83,8 @@ const upcoming = computed(() =>
 onShow(() => {
   date.value = today()
   void store.load().then(() => {
-    if (!store.data.people.some(person => person.id === selectedPerson.value))
-      selectedPerson.value = ''
+    selectedPeople.value = selectedPeople.value.filter(id => store.data.people.some(person => person.id === id))
+    selectedTags.value = selectedTags.value.filter(tag => store.data.tagLibrary.includes(tag))
   })
 })
 async function samples() {
@@ -153,7 +155,7 @@ async function samples() {
       </view>
     </view>
     <view class="journal-content">
-      <fg-person-filter v-if="mode !== 'home' && store.data.people.length" v-model="selectedPerson" />
+      <fg-record-filters v-if="mode !== 'home'" v-model:tags="selectedTags" v-model:people="selectedPeople" />
       <view v-if="searchOpen" class="search-box">
         <fg-journal-icon name="search" /><input
           v-model="keyword"
@@ -271,7 +273,7 @@ async function samples() {
           <AnniversaryList :items="events" :summary="mode === 'home'" />
           <view v-if="!events.length" class="small-empty">
             {{
-              keyword || category !== "全部"
+              keyword || selectedTags.length || selectedPeople.length || category !== "全部"
                 ? "没有找到对应的日子，换个条件试试。"
                 : "还没有将至的日子，给未来留一点期待吧。"
             }}
@@ -293,7 +295,7 @@ async function samples() {
           <NoteList :items="notes" :summary="mode === 'home'" />
           <view v-if="!notes.length" class="small-empty">
             {{
-              keyword || month || photoOnly
+              keyword || selectedTags.length || selectedPeople.length || month || photoOnly
                 ? "没有找到对应的手记，换个条件试试。"
                 : "今天有什么值得记得？一句话就能留下。"
             }}

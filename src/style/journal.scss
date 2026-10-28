@@ -392,35 +392,6 @@ page {
   font-size: 30px;
   font-weight: 300;
 }
-.create-scrim {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  height: 120vh;
-  background: oklch(25% 0.02 45 / 0.25);
-  backdrop-filter: blur(2px);
-}
-.create-menu {
-  position: absolute;
-  bottom: calc(106px + env(safe-area-inset-bottom));
-  left: 20px;
-  right: 20px;
-  padding: 22px;
-  box-shadow: var(--sh-modal);
-  animation: paper-in 0.28s var(--ease-out-expo);
-}
-.journal-nav-wrap .menu-action {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 15px;
-  text-align: left;
-  padding: 14px 0;
-  font-size: 16px;
-}
-.menu-action > text {
-  margin-left: auto;
-}
 .journal-page .primary-button,
 .journal-page .outline-button {
   min-height: 49px;
@@ -1065,4 +1036,47 @@ page {
   width: 100%;
   height: 150px;
   border-radius: 6px;
+}
+
+.record-filters .chip {
+  min-height: 36px;
+  padding: 6px 11px;
+}
+.photo-actions {
+  display: flex;
+  gap: 10px;
+}
+.camera-overlay {
+  z-index: 80;
+}
+.camera-preview {
+  position: relative;
+  height: min(52vh, 400px);
+  overflow: hidden;
+  background: var(--ink-900);
+  color: var(--paper-1);
+  border-radius: 8px;
+}
+.camera-preview video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.camera-message {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 14px;
+}
+
+.camera-video-host {
+  position: absolute;
+  inset: 0;
+}
+.camera-message {
+  position: relative;
 }

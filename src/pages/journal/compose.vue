@@ -118,9 +118,22 @@ async function save() {
     <view class="editor-bar">
       <button role="button" class="text-button" :disabled="busy" @click="leave">
         稍后
-      </button><text class="serif text-5">{{ editing ? "修改手记" : "随手记" }}</text><text class="muted text-3">
-        {{ note.date.slice(5).replace("-", " / ") }}
-      </text>
+      </button><text class="serif text-5">{{ editing ? "修改手记" : "随手记" }}</text><picker
+        mode="date"
+        :value="note.date"
+        start="1900-01-01"
+        :end="today()"
+        @change="note.date = $event.detail.value"
+      >
+        <button
+          role="button"
+          class="text-button note-date-button"
+          aria-label="修改手记日期"
+          :disabled="busy"
+        >
+          {{ note.date.slice(5).replace("-", " / ") }}
+        </button>
+      </picker>
     </view>
     <view v-if="ready" class="journal-content form-content">
       <view class="serif mt-3 text-7">
@@ -145,20 +158,11 @@ async function save() {
       /><view class="muted mt-2 text-right text-3">
         {{ note.content.length }} / 10000
       </view>
-      <fg-photo-picker v-model="note.images" label="留一张照片" />
-      <view class="paper settings-group mt-6">
-        <picker
-          mode="date"
-          :value="note.date"
-          start="1900-01-01"
-          :end="today()"
-          @change="note.date = $event.detail.value"
-        >
-          <view class="settings-row">
-            <fg-journal-icon name="cal" /><text class="flex-1">发生日期</text><text>{{ note.date }} ›</text>
-          </view>
-        </picker>
-      </view>
+      <fg-photo-picker
+        v-model="note.images"
+        label="选一张照片"
+        :camera="true"
+      />
       <fg-person-picker v-model="note.personIds" />
       <fg-tag-picker v-model="note.tags" />
       <label class="field-label mt-6" for="note-place">地点（可选）</label><input
