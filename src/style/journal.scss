@@ -1428,8 +1428,9 @@ page {
 }
 .person-avatar-editor {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 .journal-page .avatar-upload-button {
   display: flex;

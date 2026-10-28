@@ -145,7 +145,7 @@ async function save() {
     >
     <view class="paper settings-group mt-5">
       <view class="settings-row">
-        <text class="flex-1">记下生日（可选）</text><switch
+        <text class="flex-1">生日（可选）</text><switch
           color="#b44232"
           :checked="hasBirthday"
           @change="hasBirthday = $event.detail.value"
@@ -169,8 +169,6 @@ async function save() {
       </template>
     </view><view v-if="hasBirthday && yearUnknown" class="notice mt-3">
       旧生日仅记录了月日；选择完整公历日期后补全年份，不会自动推测出生年份。
-    </view><view v-if="hasBirthday" class="notice mt-3">
-      保存后生日会出现在纪念日里，每年纪念；两处修改保持一致。2 月 29 日在非闰年按 2 月 28 日纪念。
     </view>
     <label class="field-label mt-5" for="person-remark">想记住的事（可选）</label><textarea
       id="person-remark"
@@ -185,7 +183,7 @@ async function save() {
       :disabled="busy"
       @click="save"
     >
-      {{ busy ? "正在保存…" : "存下人物资料" }}
+      {{ busy ? "正在保存…" : "保存" }}
     </button>
   </view>
 </template>

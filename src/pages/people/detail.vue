@@ -94,12 +94,8 @@ async function remove() {
         "
       >
         <fg-journal-icon name="cal" /><view class="flex-1">
-          <view>{{ birthdayLabel(birthday) }}</view><view class="muted mt-1 text-3">
-            {{
-              birthday
-                ? "生日也是值得纪念的一天"
-                : "可以补上生日，也可以只记住这个人"
-            }}
+          <view>{{ birthdayLabel(birthday) }}</view><view v-if="birthday" class="muted mt-1 text-3">
+            生日也是值得纪念的一天
           </view>
         </view><text>›</text>
       </button><view v-if="person.remark" class="event-message">
