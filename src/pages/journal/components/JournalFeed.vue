@@ -10,15 +10,13 @@ import AnniversaryList from './AnniversaryList.vue'
 import NoteList from './NoteList.vue'
 import { navigate, switchTab } from '@/utils/journal-ui'
 
-const props = defineProps<{ mode: 'home' | 'events' | 'notes' }>()
+const props = defineProps<{ mode: 'home' | 'events' }>()
 const store = useJournalStore()
 const keyword = ref('')
 const searchOpen = ref(false)
 const category = ref('全部')
-const photoOnly = ref(false)
 const selectedTags = ref<string[]>([])
 const selectedPeople = ref<string[]>([])
-const month = ref('')
 const reminderOpen = ref(false)
 const date = ref(today())
 const monthName = computed(
@@ -64,14 +62,9 @@ const notes = computed(() =>
       `${note.title} ${note.content} ${note.tags.join(' ')} ${note.place} ${peopleText(store.data, note.personIds)}`.includes(
         keyword.value.trim(),
       )
-      && matchesRecordFacets(note, selectedTags.value, selectedPeople.value)
-      && (!photoOnly.value || note.images.length > 0)
-      && (!month.value || note.date.startsWith(month.value)),
+      && matchesRecordFacets(note, selectedTags.value, selectedPeople.value),
   ),
 )
-const months = computed(() => [
-  ...new Set(store.sortedNotes.map(note => note.date.slice(0, 7))),
-])
 const hasData = computed(
   () => store.data.notes.length + store.data.anniversaries.length > 0,
 )
@@ -104,19 +97,11 @@ async function samples() {
       <view>
         <view class="page-title">
           {{
-            mode === "home"
-              ? monthName
-              : mode === "events"
-                ? "值得纪念"
-                : "一页一日"
+            mode === "home" ? monthName : "值得纪念"
           }}
         </view><view class="eyebrow">
           {{
-            mode === "home"
-              ? `${date.slice(0, 4)} · ${new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { weekday: "long" })}`
-              : mode === "events"
-                ? "把重要的日子，放在心上"
-                : "留住那些，细碎而闪亮的瞬间"
+            mode === "home" ? `${date.slice(0, 4)} · ${new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { weekday: "long" })}` : "把重要的日子，放在心上"
           }}
         </view>
       </view>
@@ -140,13 +125,10 @@ async function samples() {
           v-else
           role="button"
           class="icon-button"
-          :aria-label="mode === 'events' ? '添加纪念日' : '写手记'"
+          aria-label="添加纪念日"
           @click="
             navigate({
-              url:
-                mode === 'events'
-                  ? '/pages/journal/event-edit'
-                  : '/pages/journal/compose',
+              url: '/pages/journal/event-edit',
             })
           "
         >
@@ -194,38 +176,6 @@ async function samples() {
           {{ item }}
         </button>
       </view>
-      <view
-        v-if="mode === 'notes'"
-        class="flex flex-wrap items-center gap-2 pb-5"
-      >
-        <button
-          role="button"
-          class="chip"
-          :class="{ selected: !photoOnly }"
-          @click="photoOnly = false"
-        >
-          全部手记
-        </button><button
-          role="button"
-          class="chip"
-          :class="{ selected: photoOnly }"
-          @click="photoOnly = true"
-        >
-          有照片
-        </button><picker
-          :range="['全部月份', ...months]"
-          @change="
-            month
-              = Number($event.detail.value) === 0
-                ? ''
-                : months[Number($event.detail.value) - 1]
-          "
-        >
-          <view class="chip">
-            {{ month || "按月份" }} ▾
-          </view>
-        </picker>
-      </view>
       <view v-if="!hasData" class="empty-welcome">
         <view class="empty-mark">
           记
@@ -253,32 +203,30 @@ async function samples() {
         </view>
       </view>
       <template v-else>
-        <template v-if="mode !== 'notes'">
-          <view class="section-label">
-            {{
-              mode === "home"
-                ? keyword
-                  ? "找到的日子"
-                  : "将至"
-                : "重要的日子"
-            }}<text>{{ events.length }}</text><button
-              v-if="mode === 'home'"
-              role="button"
-              class="text-button ml-auto"
-              @click="switchTab({ url: '/pages/journal/events' })"
-            >
-              全部纪念日 →
-            </button>
-          </view>
-          <AnniversaryList :items="events" :summary="mode === 'home'" />
-          <view v-if="!events.length" class="small-empty">
-            {{
-              keyword || selectedTags.length || selectedPeople.length || category !== "全部"
-                ? "没有找到对应的日子，换个条件试试。"
-                : "还没有将至的日子，给未来留一点期待吧。"
-            }}
-          </view>
-        </template>
+        <view class="section-label">
+          {{
+            mode === "home"
+              ? keyword
+                ? "找到的日子"
+                : "将至"
+              : "重要的日子"
+          }}<text>{{ events.length }}</text><button
+            v-if="mode === 'home'"
+            role="button"
+            class="text-button ml-auto"
+            @click="switchTab({ url: '/pages/journal/events' })"
+          >
+            全部纪念日 →
+          </button>
+        </view>
+        <AnniversaryList :items="events" :summary="mode === 'home'" />
+        <view v-if="!events.length" class="small-empty">
+          {{
+            keyword || selectedTags.length || selectedPeople.length || category !== "全部"
+              ? "没有找到对应的日子，换个条件试试。"
+              : "还没有将至的日子，给未来留一点期待吧。"
+          }}
+        </view>
         <view v-if="mode === 'home'" class="today-line">
           <text />◆ 今天 · {{ Number(date.slice(5, 7)) }}月{{
             Number(date.slice(8))
@@ -295,7 +243,7 @@ async function samples() {
           <NoteList :items="notes" :summary="mode === 'home'" />
           <view v-if="!notes.length" class="small-empty">
             {{
-              keyword || selectedTags.length || selectedPeople.length || month || photoOnly
+              keyword || selectedTags.length || selectedPeople.length
                 ? "没有找到对应的手记，换个条件试试。"
                 : "今天有什么值得记得？一句话就能留下。"
             }}

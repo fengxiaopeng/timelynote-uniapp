@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import JournalFeed from '@/pages/journal/components/JournalFeed.vue'
+import NotesWorkspace from '@/pages/journal/components/NotesWorkspace.vue'
 
 definePage({
   style: { navigationStyle: 'custom', navigationBarTitleText: '如期手记' },
@@ -7,5 +7,5 @@ definePage({
 </script>
 
 <template>
-  <JournalFeed mode="notes" />
+  <NotesWorkspace />
 </template>

@@ -1080,3 +1080,329 @@ page {
 .camera-message {
   position: relative;
 }
+
+/* 手记的三种呈现共用标题和入口；筛选只属于默认视图。 */
+.notes-appbar {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--paper-0);
+  padding-top: calc(24px + env(safe-area-inset-top));
+  padding-bottom: 22px;
+}
+.notes-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.notes-appbar .eyebrow {
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+}
+.note-view-switcher {
+  position: relative;
+  z-index: 50;
+  flex-shrink: 0;
+}
+.journal-page .note-view-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 3px 0 8px;
+  font-size: 13px;
+  color: var(--ink-700);
+}
+.note-view-trigger .journal-icon {
+  width: 18px;
+  height: 18px;
+}
+.view-chevron {
+  font-size: 17px;
+  line-height: 1;
+  padding-bottom: 5px;
+}
+.note-view-dismiss {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+.note-view-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 2px);
+  width: 150px;
+  padding: 5px 10px;
+  z-index: 2;
+  box-shadow: var(--sh-3);
+}
+.journal-page .note-view-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid var(--edge-soft);
+}
+.note-view-option:last-child {
+  border-bottom: 0;
+}
+.note-view-option .journal-icon {
+  width: 19px;
+  height: 19px;
+}
+.view-check {
+  color: var(--cinnabar-text);
+  font-size: 17px;
+}
+.notes-workspace .section-label {
+  font-family: var(--font-hand);
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: var(--ink-900);
+}
+.notes-workspace .section-label > text:first-of-type {
+  color: var(--ink-500);
+  font: 12px var(--font-body);
+}
+.album-note {
+  margin-bottom: 22px;
+}
+.album-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--paper-2);
+}
+.album-swiper {
+  width: 100%;
+  height: 100%;
+}
+.album-photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: relative;
+}
+.album-counter {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 2px 6px;
+  background: #302d29a6;
+  color: #fffdf8;
+  border-radius: 4px;
+  font: 12px var(--font-body);
+  pointer-events: none;
+}
+.album-sample-label {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  color: #fffdf8;
+  font-size: 11px;
+  background: #302d2955;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.album-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 24px;
+}
+.album-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--edge);
+}
+.album-dot.active {
+  background: var(--cinnabar-600);
+}
+.journal-page .album-caption {
+  width: 100%;
+  text-align: left;
+  padding: 12px 5px 0;
+}
+.album-dots + .album-caption {
+  padding-top: 0;
+}
+.album-date {
+  display: flex;
+  align-items: center;
+  font: 15px var(--font-hand);
+  color: var(--ink-700);
+  margin-bottom: 8px;
+}
+.album-date .journal-icon {
+  margin-left: auto;
+  width: 16px;
+  height: 16px;
+}
+.album-title {
+  font: 21px/1.5 var(--font-hand);
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+.album-excerpt {
+  font: 14px/1.9 var(--font-hand);
+  color: var(--ink-500);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.album-note-text {
+  border: 1px solid var(--edge-soft);
+  background: var(--paper-1);
+  border-radius: 10px;
+  padding: 17px 15px 20px;
+}
+.album-note-text .album-caption {
+  padding: 0;
+}
+.note-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0 15px;
+}
+.journal-page .note-month-label {
+  min-height: 44px;
+  padding: 0 10px;
+  font: 20px var(--font-hand);
+}
+.note-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+}
+.note-weekday {
+  font: 12px/1.6 var(--font-body);
+  color: var(--ink-500);
+  padding-bottom: 14px;
+}
+.note-calendar-cell {
+  min-height: 50px;
+}
+.journal-page .note-calendar-day {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 1px;
+  font: 17px var(--font-display);
+}
+.note-day-number {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.note-calendar-day.is-today .note-day-number {
+  outline: 1px solid var(--edge);
+}
+.note-calendar-day.chosen .note-day-number {
+  background: var(--cinnabar-600);
+  color: var(--paper-1);
+  outline: none;
+}
+.note-day-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--cinnabar-600);
+  margin-top: 3px;
+}
+.note-calendar-records {
+  border-top: 1px solid var(--edge);
+  margin-top: 12px;
+  padding-top: 15px;
+}
+.calendar-day-label {
+  font: 19px var(--font-hand);
+  margin-bottom: 13px;
+}
+.calendar-day-label > text {
+  color: var(--ink-500);
+  font: 12px var(--font-body);
+  margin-left: 10px;
+}
+.journal-page .calendar-note-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--edge-soft);
+  border-radius: 9px;
+  background: var(--paper-1);
+  text-align: left;
+}
+.calendar-note-thumb {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 6px;
+}
+.calendar-text-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper-2);
+}
+.calendar-note-title {
+  font: 17px/1.5 var(--font-hand);
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
+.calendar-note-excerpt {
+  font: 13px/1.75 var(--font-hand);
+  color: var(--ink-500);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 360px) {
+  .notes-appbar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .notes-appbar .eyebrow {
+    font-size: 11px;
+  }
+  .calendar-note-thumb {
+    width: 60px;
+    height: 60px;
+  }
+  .album-title {
+    font-size: 20px;
+  }
+}
+
+/* #ifdef H5 */
+.album-photo img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* #endif */
