@@ -65,6 +65,7 @@ onShow(async () => {
         <fg-record-filters
           v-model:tags="selectedTags"
           v-model:people="selectedPeople"
+          compact
         /><view class="section-label">
           记得<text>{{ filtered.length }}篇手记</text>
         </view><NoteList :items="filtered" /><view

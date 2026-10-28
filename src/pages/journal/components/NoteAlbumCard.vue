@@ -40,16 +40,7 @@ function preview(src: string) {
     return
   previewImage({ urls: props.note.images, current: src })
 }
-const sampleFrames = computed(() =>
-  props.note.sample
-  && props.note.id === 'sample-sea'
-  && !props.note.images.length
-    ? ['photo--sea', 'photo--dusk', 'photo--room']
-    : [],
-)
-const count = computed(
-  () => props.note.images.length || sampleFrames.value.length,
-)
+const count = computed(() => props.note.images.length)
 watch(
   () => props.note.images,
   () => {
@@ -64,9 +55,8 @@ function detail() {
 </script>
 
 <template>
-  <view class="album-note" :class="{ 'album-note-text': !count }">
+  <view class="album-note">
     <view
-      v-if="count"
       class="album-media"
       @touchstart.capture="begin"
       @touchmove.capture="move"
@@ -88,10 +78,6 @@ function detail() {
             :aria-label="`${note.title || '手记照片'}，第 ${photoIndex + 1} 张`"
             @click="preview(src)"
           />
-        </swiper-item><swiper-item v-for="frame in sampleFrames" :key="frame">
-          <view class="album-photo" :class="frame">
-            <text class="album-sample-label">示例画面</text>
-          </view>
         </swiper-item>
       </swiper><text v-if="count > 1" class="album-counter">
         {{ index + 1 }}/{{ count }}
@@ -106,11 +92,13 @@ function detail() {
       />
     </view>
     <button role="button" class="album-caption" @click="detail">
-      <view class="album-date">
-        {{ shortDate(note.date)
-        }}<text v-if="note.sample" class="sample-label ml-2">示例</text><fg-journal-icon v-if="!count" name="pen" />
-      </view><view class="album-title">
-        {{ note.title || "一页日常" }}
+      <view class="album-heading">
+        <view class="album-title">
+          {{ note.title || "一页日常" }}<text v-if="note.sample" class="sample-label ml-2">示例</text>
+        </view>
+        <view class="album-date">
+          {{ shortDate(note.date) }}
+        </view>
       </view><view class="album-excerpt">
         {{ note.content || "把这一刻，留在照片里。" }}
       </view>

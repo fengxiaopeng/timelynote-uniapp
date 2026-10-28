@@ -11,7 +11,7 @@ const paging = ref<{
   setLocalPaging: (notes: Note[]) => Promise<unknown>
 } | null>(null)
 const visible = ref<Note[]>([])
-const source = computed(() => props.notes)
+const source = computed(() => props.notes.filter(note => note.images.length > 0))
 watch(
   [source, paging],
   () => {
@@ -43,8 +43,8 @@ onReachBottom(() => paging.value?.pageReachBottom())
         :key="note.id"
         :note="note"
       />
-    </z-paging><view v-if="!notes.length" class="small-empty serif">
-      一张照片，一段日常。<br>下一次想记住的瞬间，就留在这里。
+    </z-paging><view v-if="!source.length" class="small-empty serif">
+      还没有带照片的手记。<br>为手记添一张照片，在这里回看。
     </view>
   </view>
 </template>

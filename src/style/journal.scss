@@ -1201,16 +1201,6 @@ page {
   font: 12px var(--font-body);
   pointer-events: none;
 }
-.album-sample-label {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  color: #fffdf8;
-  font-size: 11px;
-  background: #302d2955;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
 .album-dots {
   display: flex;
   align-items: center;
@@ -1235,21 +1225,23 @@ page {
 .album-dots + .album-caption {
   padding-top: 0;
 }
-.album-date {
+.album-heading {
   display: flex;
-  align-items: center;
-  font: 15px var(--font-hand);
-  color: var(--ink-700);
-  margin-bottom: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
 }
-.album-date .journal-icon {
-  margin-left: auto;
-  width: 16px;
-  height: 16px;
+.album-date {
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-align: right;
+  font: 13px var(--font-hand);
+  color: var(--ink-500);
 }
 .album-title {
+  min-width: 0;
   font: 21px/1.5 var(--font-hand);
-  margin-bottom: 6px;
   overflow-wrap: anywhere;
 }
 .album-excerpt {
@@ -1261,15 +1253,6 @@ page {
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-.album-note-text {
-  border: 1px solid var(--edge-soft);
-  background: var(--paper-1);
-  border-radius: 10px;
-  padding: 17px 15px 20px;
-}
-.album-note-text .album-caption {
-  padding: 0;
 }
 .note-calendar-header {
   display: flex;
@@ -1406,3 +1389,14 @@ page {
 }
 
 /* #endif */
+
+.record-filters-compact .chips {
+  flex-wrap: nowrap;
+  width: max-content;
+  min-width: 100%;
+  padding: 1px 0;
+}
+.record-filters-compact .chip {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
