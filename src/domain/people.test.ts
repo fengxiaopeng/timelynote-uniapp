@@ -5,7 +5,7 @@ import { birthdayOf, blankPerson, removePerson, unlinkEvent, upsertPerson } from
 describe('重要的人与生日', () => {
   it('可以不填写生日，也可以填写只有月日的闰日生日', () => {
     const data = emptyJournal()
-    const person = { ...blankPerson(), name: '小满', relationship: '孩子' }
+    const person = { ...blankPerson(), name: '小满' }
     upsertPerson(data, person, null)
     expect(data.anniversaries).toHaveLength(0)
     upsertPerson(data, data.people[0], { date: '2024-02-29', yearUnknown: true })
@@ -87,5 +87,41 @@ describe('重要的人与生日', () => {
     expect(migrated.notes[0].content).toBe('和妈妈吃饭')
     expect(validJournal(migrated)).toBe(true)
     expect(migrateJournal({ ...legacy, people: 'broken' })).toBeNull()
+  })
+})
+
+describe('人物头像与旧资料迁移', () => {
+  it('旧关系字段移除，补默认头像并保留旧生日及关联', () => {
+    const data = emptyJournal()
+    const person = { ...blankPerson(), name: '旧人物' }
+    upsertPerson(data, person, { date: '2000-02-29', yearUnknown: true })
+    data.notes.push({ ...blankNote(), personIds: [person.id] })
+    const old = JSON.parse(JSON.stringify(data))
+    delete old.people[0].avatar
+    old.people[0].relationship = '朋友'
+    const migrated = migrateJournal(old)!
+    expect(migrated.people[0].avatar).toBe('')
+    expect(migrated.people[0]).not.toHaveProperty('relationship')
+    expect(birthdayOf(migrated, migrated.people[0])?.yearUnknown).toBe(true)
+    expect(migrated.notes[0].personIds).toEqual([person.id])
+  })
+  it('头像随资料及备份保留，修改头像不重建生日', () => {
+    const data = emptyJournal()
+    const person = { ...blankPerson(), name: '头像', avatar: 'data:image/jpeg;base64,AA==' }
+    upsertPerson(data, person, { date: '2001-02-03', yearUnknown: false })
+    const eventId = data.people[0].birthdayEventId
+    upsertPerson(data, { ...data.people[0], avatar: 'data:image/png;base64,AQ==' }, { date: '2001-02-04', yearUnknown: false })
+    const restored = migrateJournal(JSON.parse(JSON.stringify(data)))!
+    expect(restored.people[0].avatar).toBe('data:image/png;base64,AQ==')
+    expect(restored.people[0].birthdayEventId).toBe(eventId)
+    expect(restored.anniversaries).toHaveLength(1)
+    expect(restored.anniversaries[0].date).toBe('2001-02-04')
+  })
+  it('拒绝外部地址、脚本、畸形或过大的头像，避免覆盖本机手账', () => {
+    for (const avatar of ['https://example.com/a.jpg', 'javascript:alert(1)', null, 42, `data:image/jpeg;base64,${'A'.repeat(200000)}`]) {
+      const data = emptyJournal()
+      const person = { ...blankPerson(), name: '无效头像' }
+      expect(migrateJournal({ ...data, people: [{ ...person, avatar }] })).toBeNull()
+    }
   })
 })

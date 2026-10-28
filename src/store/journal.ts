@@ -144,7 +144,7 @@ export const useJournalStore = defineStore('journal', () => {
         {
           id: 'sample-person-ning',
           name: '阿宁',
-          relationship: '伴侣',
+          avatar: '',
           remark: '示例人物，可编辑或删除',
           archived: false,
           birthdayEventId: '',
@@ -152,7 +152,7 @@ export const useJournalStore = defineStore('journal', () => {
         {
           id: 'sample-person-mom',
           name: '妈妈',
-          relationship: '父母',
+          avatar: '',
           remark: '示例人物，可编辑或删除',
           archived: false,
           birthdayEventId: 'sample-birthday',
@@ -160,7 +160,7 @@ export const useJournalStore = defineStore('journal', () => {
         {
           id: 'sample-person-child',
           name: '小满',
-          relationship: '孩子',
+          avatar: '',
           remark: '示例人物，可编辑或删除',
           archived: false,
           birthdayEventId: '',

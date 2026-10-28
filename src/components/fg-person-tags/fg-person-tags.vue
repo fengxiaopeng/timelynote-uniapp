@@ -15,17 +15,17 @@ function open(id: string) {
 
 <template>
   <view v-if="people.length" class="person-tags">
-    <text
+    <view
       v-for="person in people"
       :key="person.id"
-      class="person-pill"
+      class="person-choice"
       role="button"
       tabindex="0"
       :aria-label="`查看${person.name}`"
       @click.stop="open(person.id)"
       @keydown.enter.stop="open(person.id)"
     >
-      {{ person.name }}{{ person.archived ? " · 已归档" : "" }}
-    </text>
+      <fg-person-avatar :name="person.name" :src="person.avatar" :size="36" /><text class="person-choice-name">{{ person.name }}</text>
+    </view>
   </view>
 </template>

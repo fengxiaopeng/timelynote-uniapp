@@ -32,33 +32,12 @@ onLoad((options) => {
 onShow(() => {
   void store.load()
 })
-async function archive() {
-  if (!person.value || busy.value)
-    return
-  busy.value = true
-  try {
-    await store.update((next) => {
-      const item = next.people.find(p => p.id === id.value)
-      if (item)
-        item.archived = !item.archived
-    })
-    toast(
-      person.value.archived ? '人物已归档，历史关联保留' : '已回到记在心上的人',
-    )
-  }
-  catch (error) {
-    toast((error as Error).message)
-  }
-  finally {
-    busy.value = false
-  }
-}
 async function remove() {
   if (
     busy.value
     || !(await confirmAction(
       '删除这位人物？',
-      '只删除人物资料和人物关联，生日纪念日与所有手记均保留。删除无法恢复，也可以选择归档保留关联。',
+      '只删除人物资料和人物关联，生日纪念日与所有手记均保留。删除无法恢复。',
     ))
   ) {
     return
@@ -100,11 +79,8 @@ async function remove() {
       </button>
     </view><view v-if="person" class="journal-content form-content">
       <view class="person-detail-header">
-        <text class="person-avatar">{{ person.name.slice(0, 1) }}</text><view class="serif mt-4 text-8">
+        <fg-person-avatar :name="person.name" :src="person.avatar" :size="72" /><view class="serif mt-4 text-8">
           {{ person.name }}
-        </view><view class="muted text-3.5">
-          {{ person.relationship
-          }}{{ person.archived ? " · 已归档" : "" }}
         </view>
       </view><button
         role="button"
@@ -183,13 +159,6 @@ async function remove() {
           写一篇手记
         </button>
       </view><button
-        role="button"
-        class="outline-button mt-6"
-        :disabled="busy"
-        @click="archive"
-      >
-        {{ person.archived ? "取消归档" : "归档人物，保留回忆" }}
-      </button><button
         role="button"
         class="text-button my-4 w-full"
         :disabled="busy"

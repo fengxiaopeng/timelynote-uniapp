@@ -55,7 +55,7 @@ it('人物生日从纪念日入口修改，人物读取同一日期且只更新�
   const person = {
     id: 'child',
     name: '小满',
-    relationship: '孩子',
+    avatar: '',
     remark: '',
     archived: false,
     birthdayEventId: '',
@@ -80,7 +80,7 @@ it('保存人物失败不会留下半个生日或人物；账号切换清空人�
   const person = {
     id: 'child',
     name: '小满',
-    relationship: '孩子',
+    avatar: '',
     remark: '',
     archived: false,
     birthdayEventId: '',
@@ -119,7 +119,7 @@ it('纪念日独立保存文字、照片和标签，不创建手记；生日修�
   const person = {
     id: 'child',
     name: '小满',
-    relationship: '孩子',
+    avatar: '',
     remark: '',
     archived: false,
     birthdayEventId: '',

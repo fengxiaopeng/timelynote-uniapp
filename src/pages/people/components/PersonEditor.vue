@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { Person } from '@/domain/journal'
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { today } from '@/domain/journal'
-import { birthdayOf, blankPerson, relationships } from '@/domain/people'
+import { birthdayOf, blankPerson } from '@/domain/people'
 import { useJournalStore } from '@/store/journal'
+import { chooseLocalPhotos } from '@/utils/journal-media'
 import { confirmAction, toast } from '@/utils/journal-ui'
 
 const props = defineProps<{ personId?: string }>()
@@ -17,13 +18,12 @@ const reuseId = ref('')
 const busy = ref(false)
 const initial = ref('')
 const originalBirthday = ref(false)
-const candidates = computed(() =>
-  store.data.anniversaries.filter(
-    event =>
-      event.category === '生日'
-      && (!event.birthdayPersonId || event.birthdayPersonId === person.value.id),
-  ),
-)
+function uploadAvatar() {
+  chooseLocalPhotos((images) => {
+    if (images[0])
+      person.value.avatar = images[0]
+  }, error => toast(error.message), { source: 'album', multiple: false, maxDimension: 256 })
+}
 function snapshot() {
   return JSON.stringify([
     person.value,
@@ -50,20 +50,6 @@ watch(
   },
   { immediate: true },
 )
-function setUnknown(unknown: boolean) {
-  yearUnknown.value = unknown
-  if (unknown)
-    date.value = `2000-${date.value.slice(5)}`
-}
-function reuse(index: number) {
-  const event = candidates.value[index - 1]
-  reuseId.value = event?.id || ''
-  if (event) {
-    date.value = event.date
-    yearUnknown.value = !!event.yearUnknown
-    hasBirthday.value = true
-  }
-}
 async function cancel() {
   if (
     snapshot() !== initial.value
@@ -141,30 +127,21 @@ async function save() {
         ×
       </button>
     </view>
+    <view class="person-avatar-editor mt-5">
+      <button role="button" class="avatar-upload-button" aria-label="上传人物头像" :disabled="busy" @click="uploadAvatar">
+        <fg-person-avatar :name="person.name" :src="person.avatar" :size="72" />
+        <text class="muted mt-2 text-3">{{ person.avatar ? '更换头像' : '上传头像' }}</text>
+      </button>
+      <button v-if="person.avatar" role="button" class="text-button text-3" :disabled="busy" @click="person.avatar = ''">
+        移除头像
+      </button>
+    </view>
     <label class="field-label mt-5" for="person-name">怎么称呼</label><input
       id="person-name"
       v-model="person.name"
       class="plain-input"
       placeholder="比如，小满、妈妈、阿宁"
       :maxlength="30"
-    >
-    <label class="field-label mt-5" for="person-relationship">你们的关系</label><view class="chips mb-3">
-      <button
-        v-for="relationship in relationships"
-        :key="relationship"
-        role="button"
-        class="chip"
-        :class="{ selected: person.relationship === relationship }"
-        @click="person.relationship = relationship"
-      >
-        {{ relationship }}
-      </button>
-    </view><input
-      id="person-relationship"
-      v-model="person.relationship"
-      class="plain-input"
-      placeholder="也可以填写自己的关系称呼"
-      :maxlength="20"
     >
     <view class="paper settings-group mt-5">
       <view class="settings-row">
@@ -175,51 +152,25 @@ async function save() {
         />
       </view>
       <template v-if="hasBirthday">
-        <view class="settings-row">
-          <text class="flex-1">只知道月日</text><switch
-            color="#b44232"
-            :checked="yearUnknown"
-            @change="setUnknown($event.detail.value)"
-          />
-        </view>
-        <fg-month-day-picker v-if="yearUnknown" v-model="date" />
         <picker
-          v-else
           mode="date"
-          :value="date"
+          :value="yearUnknown ? today() : date"
           start="1900-01-01"
-          :end="yearUnknown ? '2100-12-31' : today()"
-          @change="date = $event.detail.value"
+          :end="today()"
+          @change="date = $event.detail.value; yearUnknown = false"
         >
           <view class="settings-row">
             <text class="flex-1">公历生日</text><text>
-              {{ yearUnknown ? `${date.slice(5).replace("-", "月")}日` : date }}
-              ›
-            </text>
-          </view>
-        </picker><picker
-          v-if="candidates.length"
-          :range="[
-            person.birthdayEventId ? '继续使用当前生日' : '自动创建生日纪念日',
-            ...candidates.map((event) => event.title),
-          ]"
-          :value="candidates.findIndex((event) => event.id === reuseId) + 1"
-          @change="reuse(Number($event.detail.value))"
-        >
-          <view class="settings-row">
-            <text class="flex-1">使用已有纪念日</text><text class="person-truncate">
-              {{
-                candidates.find((event) => event.id === reuseId)?.title
-                  || "自动创建"
-              }}
+              {{ yearUnknown ? `${date.slice(5).replace("-", "月")}日 · 补全年份` : date }}
               ›
             </text>
           </view>
         </picker>
       </template>
+    </view><view v-if="hasBirthday && yearUnknown" class="notice mt-3">
+      旧生日仅记录了月日；选择完整公历日期后补全年份，不会自动推测出生年份。
     </view><view v-if="hasBirthday" class="notice mt-3">
-      保存后生日会出现在纪念日里，每年纪念；两处修改保持一致。只知道月日时不显示年龄。2
-      月 29 日在非闰年按 2 月 28 日纪念。
+      保存后生日会出现在纪念日里，每年纪念；两处修改保持一致。2 月 29 日在非闰年按 2 月 28 日纪念。
     </view>
     <label class="field-label mt-5" for="person-remark">想记住的事（可选）</label><textarea
       id="person-remark"

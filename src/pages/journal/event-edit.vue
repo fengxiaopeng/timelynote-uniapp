@@ -192,13 +192,6 @@ async function save() {
       <view v-if="event.birthdayPersonId" class="notice mt-4">
         这是人物资料中的生日，日期修改后两处同步。生日主人的关联始终保留。
       </view>
-      <view v-if="event.category === '生日'" class="paper settings-row mt-4">
-        <text class="flex-1">只知道月日，不显示年龄</text><switch
-          color="#b44232"
-          :checked="!!event.yearUnknown"
-          @change="event.yearUnknown = $event.detail.value"
-        />
-      </view>
       <fg-person-picker
         v-model="event.personIds"
         :locked-ids="event.birthdayPersonId ? [event.birthdayPersonId] : []"
@@ -221,26 +214,21 @@ async function save() {
       <view class="field-label mt-7">
         选一个日子 · 公历
       </view>
-      <fg-month-day-picker
-        v-if="event.yearUnknown"
-        v-model="event.date"
-        class="paper"
-      />
       <picker
-        v-else
         mode="date"
-        :value="event.date"
+        :value="event.yearUnknown ? today() : event.date"
         start="1900-01-01"
         end="2100-12-31"
         @change="
           event.date = $event.detail.value;
+          event.yearUnknown = false;
           month = event.date.slice(0, 7);
         "
       >
         <view class="date-picker paper">
           {{
             event.yearUnknown
-              ? `${Number(event.date.slice(5, 7))}月${Number(event.date.slice(8))}日 · 年份未填写`
+              ? `${Number(event.date.slice(5, 7))}月${Number(event.date.slice(8))}日 · 请补全年份`
               : dateLabel(event.date)
           }}<text>快速选年 / 月 / 日 ›</text>
         </view>

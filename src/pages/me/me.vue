@@ -187,7 +187,7 @@ async function discardDraft() {
         >
           <fg-journal-icon name="heart" /><text class="flex-1">重要的人</text><text class="muted text-3">
             {{
-              store.data.people.filter((person) => !person.archived).length
+              store.data.people.length
             }}
             位 ›
           </text>

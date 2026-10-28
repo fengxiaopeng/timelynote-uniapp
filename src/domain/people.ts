@@ -6,12 +6,11 @@ import type {
 } from './journal'
 import { newId, today, validDate } from './journal'
 
-export const relationships = ['孩子', '父母', '伴侣', '朋友', '亲人', '其他']
 export function blankPerson(): Person {
   return {
     id: newId(),
     name: '',
-    relationship: '朋友',
+    avatar: '',
     remark: '',
     archived: false,
     birthdayEventId: '',

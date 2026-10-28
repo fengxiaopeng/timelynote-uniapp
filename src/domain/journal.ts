@@ -1,7 +1,7 @@
 export interface Person {
   id: string
   name: string
-  relationship: string
+  avatar: string
   remark: string
   archived: boolean
   birthdayEventId: string
@@ -200,15 +200,16 @@ export function validJournal(value: unknown): value is JournalData {
 export function validPerson(value: unknown): value is Person {
   return (
     record(value)
-    && ['id', 'name', 'relationship', 'remark', 'birthdayEventId'].every(
+    && ['id', 'name', 'avatar', 'remark', 'birthdayEventId'].every(
       key => typeof value[key] === 'string',
     )
+    && (value.avatar === '' || (typeof value.avatar === 'string' && value.avatar.length <= 200000 && validImages([value.avatar])))
     && typeof value.archived === 'boolean'
     && String(value.id).length > 0
     && String(value.name).trim().length > 0
   )
 }
-/** 兼容旧手账和备份；移除已弃用天气，保留原文、照片与历史归属。 */
+/** 兼容旧手账与备份；补默认头像并移除关系、天气，保留生日和历史归属。 */
 export function migrateJournal(value: unknown): JournalData | null {
   if (!record(value))
     return null
@@ -223,7 +224,17 @@ export function migrateJournal(value: unknown): JournalData | null {
     ...value,
     tagLibrary:
       value.tagLibrary === undefined ? [...defaultTags] : value.tagLibrary,
-    people: value.people === undefined ? [] : value.people,
+    people: value.people === undefined
+      ? []
+      : Array.isArray(value.people)
+        ? value.people.map((person) => {
+            if (!record(person))
+              return person
+            const next = { ...person, avatar: person.avatar === undefined ? '' : person.avatar }
+            delete (next as Record<string, unknown>).relationship
+            return next
+          })
+        : value.people,
     notes: Array.isArray(value.notes)
       ? value.notes.map(stripWeather)
       : value.notes,

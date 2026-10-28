@@ -53,12 +53,12 @@ const store = useJournalStore()
           v-for="person in store.data.people"
           :key="person.id"
           role="button"
-          class="chip"
+          class="person-choice"
           :class="{ selected: people.includes(person.id) }"
           :aria-pressed="people.includes(person.id)"
           @click="emit('update:people', toggleFacet(people, person.id))"
         >
-          {{ person.name }}{{ person.archived ? " · 已归档" : "" }}
+          <fg-person-avatar :name="person.name" :src="person.avatar" :size="36" /><text class="person-choice-name">{{ person.name }}</text>
         </button>
       </view>
     </scroll-view>

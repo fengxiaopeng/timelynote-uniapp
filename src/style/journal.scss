@@ -968,18 +968,6 @@ page {
   gap: 6px;
   margin-top: 10px;
 }
-.person-pill {
-  padding: 5px 8px;
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  font-size: 11px;
-  color: var(--cinnabar-text);
-  border: 1px solid oklch(88% 0.035 32);
-  border-radius: 5px;
-  background: var(--cinnabar-100);
-  cursor: pointer;
-}
 .journal-page .person-option {
   display: flex;
   align-items: center;
@@ -1427,4 +1415,89 @@ page {
   line-height: 22px;
   white-space: nowrap;
   border-radius: 6px;
+}
+
+.person-avatar {
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.person-avatar-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.person-avatar-editor {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.journal-page .avatar-upload-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.journal-page .person-choice,
+.person-choice {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  justify-content: flex-start;
+  width: 60px;
+  padding: 3px 2px;
+  gap: 5px;
+  color: var(--ink-700);
+  vertical-align: top;
+}
+.person-choice-image {
+  position: relative;
+}
+.person-choice-name {
+  font: 11px/1.4 var(--font-body);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.person-choice-check {
+  position: absolute;
+  right: -2px;
+  bottom: -1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cinnabar-600);
+  color: white;
+  font: 11px/16px var(--font-body);
+  text-align: center;
+}
+.person-choice.selected .person-avatar,
+.person-choice.person-owner .person-avatar {
+  outline: 2px solid var(--cinnabar-600);
+  outline-offset: 2px;
+}
+.person-choice.selected .person-choice-name {
+  color: var(--cinnabar-text);
+}
+.person-choice-plus {
+  width: 44px;
+  height: 44px;
+  border: 1px dashed var(--edge);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+.person-picker .editor-tag-row {
+  align-items: flex-start;
+}
+.person-picker .editor-tag-chips {
+  padding: 4px 2px;
+}
+.person-tags {
+  align-items: flex-start;
+}
+.filter-people {
+  align-items: center;
 }

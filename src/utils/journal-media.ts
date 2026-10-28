@@ -3,10 +3,11 @@ export function encodePhotoFrame(
   source: CanvasImageSource,
   width: number,
   height: number,
+  maxDimension = 1200,
 ) {
   if (!width || !height)
     throw new Error('画面还在准备中，请稍后再拍')
-  const scale = Math.min(1, 1200 / Math.max(width, height))
+  const scale = Math.min(1, maxDimension / Math.max(width, height))
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(width * scale)
   canvas.height = Math.round(height * scale)
@@ -23,7 +24,7 @@ export function encodePhotoFrame(
 export function chooseLocalPhotos(
   onResult: (images: string[]) => void,
   onError: (error: Error) => void,
-  options: { source?: 'album' | 'camera', multiple?: boolean } = {},
+  options: { source?: 'album' | 'camera', multiple?: boolean, maxDimension?: number } = {},
 ) {
   // #ifdef H5
   const picker = document.createElement('input')
@@ -51,7 +52,7 @@ export function chooseLocalPhotos(
             img.onerror = () => reject(new Error('照片读取失败，请重新选择'))
             img.src = url
           })
-          images.push(encodePhotoFrame(img, img.width, img.height))
+          images.push(encodePhotoFrame(img, img.width, img.height, options.maxDimension))
         }
         finally {
           URL.revokeObjectURL(url)
