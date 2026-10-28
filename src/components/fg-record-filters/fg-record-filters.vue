@@ -19,14 +19,6 @@ const store = useJournalStore()
     </view><scroll-view :scroll-x="compact" :show-scrollbar="false">
       <view class="chips filter-tags">
         <button
-          role="button"
-          class="chip"
-          :class="{ selected: !tags.length }"
-          :aria-pressed="!tags.length"
-          @click="emit('update:tags', [])"
-        >
-          {{ compact ? "全部" : "全部标签" }}
-        </button><button
           v-for="tag in tagLibrary(store.data, scope)"
           :key="tag"
           role="button"
@@ -44,14 +36,6 @@ const store = useJournalStore()
     </view><scroll-view :scroll-x="compact" :show-scrollbar="false">
       <view class="chips filter-people">
         <button
-          role="button"
-          class="chip"
-          :class="{ selected: !people.length }"
-          :aria-pressed="!people.length"
-          @click="emit('update:people', [])"
-        >
-          {{ compact ? "全部" : "全部人物" }}
-        </button><button
           v-for="person in store.data.people"
           :key="person.id"
           role="button"
