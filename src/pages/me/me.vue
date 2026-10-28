@@ -222,15 +222,7 @@ async function draftActions() {
             ×
           </button>
         </view>
-        <view class="account-help-copy">
-          <view>点击底部「＋」直接写手记，纪念日在「如期」页新增。纪念日支持公历年度重复，2 月 29 日在非闰年按 2 月 28 日计算；详情可快速创建关联手记。</view>
-          <view>人物和标签直接点选，再点取消。未选中任何筛选条件时显示全部。提醒偏好用于新建纪念日，已有日子保留各自规则；当天提醒为全局偏好。当前仅保存设置，暂不发送通知。</view>
-          <view>验证码固定为 9999。游客和各手机号使用独立本地手账，不会自动迁移记录；退出后再次登录同一手机号可恢复本机手账。</view>
-          <view>数据、照片和人物头像保存在当前浏览器。建议定期导出备份，清理浏览器前先保存备份文件。当前未接入真实短信、云同步及图片与链接分享。</view>
-          <view class="muted">
-            如期手记 · H5 单机版 · v{{ appInfo.version }}
-          </view>
-        </view>
+        <fg-journal-help compact />
         <button role="button" class="primary-button mt-5" @click="help = false">
           继续记录
         </button>

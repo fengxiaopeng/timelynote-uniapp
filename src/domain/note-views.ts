@@ -47,3 +47,8 @@ export function dayInMonth(date: string, month: string) {
 export function shortDate(date: string) {
   return `${Number(date.slice(5, 7))}月${Number(date.slice(8))}日`
 }
+
+/** 相册没有年月分组，跨年记录需在日期文字中补全年份。 */
+export function albumDate(date: string, base: string) {
+  return `${date.slice(0, 4) === base.slice(0, 4) ? '' : `${date.slice(0, 4)}年`}${shortDate(date)}`
+}

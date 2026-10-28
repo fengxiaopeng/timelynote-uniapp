@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { blankNote } from './journal'
 import {
+  albumDate,
   dayInMonth,
   monthCells,
   notesByDate,
@@ -63,4 +64,9 @@ describe('手记的日历与日期分组', () => {
     ])
     expect(input[0].id).toBe('older')
   })
+})
+
+it('相册日期在跨年时显示年份，不混淆不同年份的同一天', () => {
+  expect(albumDate('2026-10-28', '2026-10-28')).toBe('10月28日')
+  expect(albumDate('2025-10-28', '2026-10-28')).toBe('2025年10月28日')
 })

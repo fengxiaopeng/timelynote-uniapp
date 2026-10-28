@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   back,
+  chooseAction,
   confirmAction,
   navigate,
   previewImage,
@@ -43,6 +44,15 @@ async function remove() {
     toast((error as Error).message)
   }
 }
+async function more() {
+  const choice = await chooseAction(['编辑手记', '复制文字', '删除手记'])
+  if (choice === 0)
+    navigate({ url: `/pages/journal/compose?id=${encodeURIComponent(id.value)}` })
+  if (choice === 1)
+    copy()
+  if (choice === 2)
+    await remove()
+}
 function copy() {
   if (!note.value)
     return
@@ -55,18 +65,18 @@ function copy() {
 </script>
 
 <template>
-  <view class="journal-page detail-page">
+  <view class="journal-page detail-page note-reading-page">
     <view class="editor-bar">
       <button role="button" class="icon-button" aria-label="返回" @click="back">
         <fg-journal-icon name="chevL" />
-      </button><text class="muted text-3">留住这一刻</text><button
+      </button><text class="serif text-5">手记详情</text><button
         v-if="note"
         role="button"
         class="icon-button"
-        aria-label="删除手记"
-        @click="remove"
+        aria-label="更多手记操作"
+        @click="more"
       >
-        ×
+        ⋯
       </button>
     </view>
     <template v-if="note">
@@ -86,18 +96,15 @@ function copy() {
       >
         <view class="eyebrow">
           {{ dateLabel(note.date) }}
-        </view><view class="serif my-5 text-8 leading-snug">
+        </view><view class="note-reading-title">
           {{ note.title || "一页日常" }}
         </view><view
           v-if="note.place"
           class="muted mb-5 flex items-center gap-2 text-3"
         >
           <fg-journal-icon name="pin" />{{ note.place }}
-        </view><view v-if="note.personIds?.length" class="mb-5">
-          <view class="field-label">
-            一起记得
-          </view><fg-person-tags :ids="note.personIds" />
         </view>
+
         <view class="detail-body">
           {{ note.content }}
         </view><view v-if="note.images.length > 1" class="detail-gallery">
@@ -112,23 +119,21 @@ function copy() {
           <text v-for="tag in note.tags" :key="tag" class="note-tag">
             {{ tag }}
           </text><text v-if="note.sample" class="sample-label">示例手记</text>
-        </view><view class="detail-signature">
+        </view><fg-person-tags v-if="note.personIds?.length" :ids="note.personIds" compact /><view class="detail-signature">
           日子有迹，念念如期。
         </view>
       </view>
       <view class="detail-actions">
         <button
           role="button"
-          class="outline-button flex-1"
+          class="primary-button flex-1"
           @click="
             navigate({
               url: `/pages/journal/compose?id=${encodeURIComponent(id)}`,
             })
           "
         >
-          <fg-journal-icon name="edit" />修改手记
-        </button><button role="button" class="outline-button" @click="copy">
-          <fg-journal-icon name="share" />复制文字
+          <fg-journal-icon name="edit" />编辑手记
         </button>
       </view>
     </template>

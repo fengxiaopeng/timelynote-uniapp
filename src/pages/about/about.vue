@@ -1,24 +1,20 @@
 <script lang="ts" setup>
-import { appInfo } from '@/config/app'
+import { back } from '@/utils/journal-ui'
 
-definePage({
-  style: {
-    navigationBarTitleText: '关于如期手记',
-  },
-})
+definePage({ style: { navigationStyle: 'custom', navigationBarTitleText: '帮助与关于' } })
 </script>
 
 <template>
-  <view class="px-6 py-12 text-center">
-    <image :src="appInfo.logo" mode="aspectFit" class="mx-auto block h-24 w-24 rounded-5" />
-    <view class="mt-5 text-6 font-semibold">
-      {{ appInfo.name }}
+  <view class="journal-page editor-page about-page">
+    <view class="editor-bar">
+      <button role="button" class="icon-button" aria-label="返回" @click="back">
+        <fg-journal-icon name="chevL" />
+      </button><text class="serif text-5">帮助与关于</text><view class="w-11" />
     </view>
-    <view class="mt-3 text-4 text-[#8C7B6B]">
-      {{ appInfo.description }}
-    </view>
-    <view class="mt-8 text-3.5 text-[#8C7B6B]">
-      版本 {{ appInfo.version }}
+    <view class="journal-content">
+      <fg-journal-help /><view class="account-closing">
+        <view />让记忆，如期而至<view />
+      </view>
     </view>
   </view>
 </template>

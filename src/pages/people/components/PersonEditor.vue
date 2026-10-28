@@ -5,7 +5,7 @@ import { today } from '@/domain/journal'
 import { birthdayOf, blankPerson } from '@/domain/people'
 import { useJournalStore } from '@/store/journal'
 import { chooseLocalPhotos } from '@/utils/journal-media'
-import { confirmAction, toast } from '@/utils/journal-ui'
+import { chooseAction, confirmAction, toast } from '@/utils/journal-ui'
 
 const props = defineProps<{ personId?: string }>()
 const emit = defineEmits<{ saved: [id: string], cancel: [] }>()
@@ -23,6 +23,10 @@ function uploadAvatar() {
     if (images[0])
       person.value.avatar = images[0]
   }, error => toast(error.message), { source: 'album', multiple: false, maxDimension: 256 })
+}
+async function avatarActions() {
+  if (await chooseAction(['移除头像']) === 0)
+    person.value.avatar = ''
 }
 function snapshot() {
   return JSON.stringify([
@@ -113,10 +117,10 @@ async function save() {
 </script>
 
 <template>
-  <view class="person-editor">
+  <view class="person-editor compact-person-editor">
     <view class="flex items-center justify-between">
       <text class="serif text-6">
-        {{ personId ? "编辑人物资料" : "记下一位重要的人" }}
+        {{ personId ? "人物资料" : "新建人物" }}
       </text><button
         role="button"
         class="icon-button"
@@ -127,53 +131,41 @@ async function save() {
         ×
       </button>
     </view>
-    <view class="person-avatar-editor mt-5">
-      <button role="button" class="avatar-upload-button" aria-label="上传人物头像" :disabled="busy" @click="uploadAvatar">
-        <fg-person-avatar :name="person.name" :src="person.avatar" :size="72" />
-        <text class="muted mt-2 text-3">{{ person.avatar ? '更换头像' : '上传头像' }}</text>
-      </button>
-      <button v-if="person.avatar" role="button" class="text-button text-3" :disabled="busy" @click="person.avatar = ''">
-        移除头像
-      </button>
+    <view class="person-avatar-editor">
+      <view class="person-avatar-control">
+        <button role="button" class="avatar-upload-button" aria-label="上传人物头像" :disabled="busy" @click="uploadAvatar">
+          <fg-person-avatar :name="person.name" :src="person.avatar" :size="64" /><text class="muted mt-2 text-3">{{ person.avatar ? '更换头像' : '上传头像' }}</text>
+        </button>
+        <button v-if="person.avatar" role="button" class="avatar-more" aria-label="头像操作" :disabled="busy" @click="avatarActions">
+          ⋯
+        </button>
+      </view>
     </view>
-    <label class="field-label mt-5" for="person-name">怎么称呼</label><input
+    <label class="field-label mt-5" for="person-name">称呼</label><input
       id="person-name"
       v-model="person.name"
       class="plain-input"
       placeholder="比如，小满、妈妈、阿宁"
       :maxlength="30"
     >
-    <view class="paper settings-group mt-5">
-      <view class="settings-row">
-        <text class="flex-1">生日（可选）</text><switch
-          color="#b44232"
-          :checked="hasBirthday"
-          @change="hasBirthday = $event.detail.value"
-        />
-      </view>
-      <template v-if="hasBirthday">
-        <picker
-          mode="date"
-          :value="yearUnknown ? today() : date"
-          start="1900-01-01"
-          :end="today()"
-          @change="date = $event.detail.value; yearUnknown = false"
-        >
-          <view class="settings-row">
-            <text class="flex-1">公历生日</text><text>
-              {{ yearUnknown ? `${date.slice(5).replace("-", "月")}日 · 补全年份` : date }}
-              ›
-            </text>
-          </view>
-        </picker>
-      </template>
-    </view><view v-if="hasBirthday && yearUnknown" class="notice mt-3">
-      旧生日仅记录了月日；选择完整公历日期后补全年份，不会自动推测出生年份。
+    <view class="paper person-birthday-row">
+      <picker mode="date" :value="yearUnknown ? today() : date" start="1900-01-01" :end="today()" @change="date = $event.detail.value; yearUnknown = false; hasBirthday = true">
+        <button role="button" class="compact-option-row" aria-label="生日（可选）">
+          <text>生日（可选）</text><text>{{ hasBirthday ? yearUnknown ? `${date.slice(5).replace('-', '月')}日 · 补全年份` : date : '未设置' }}</text><text>›</text>
+        </button>
+      </picker>
+      <button v-if="hasBirthday" role="button" class="text-button" :disabled="busy" @click="hasBirthday = false">
+        清除
+      </button>
     </view>
-    <label class="field-label mt-5" for="person-remark">想记住的事（可选）</label><textarea
+    <view v-if="hasBirthday && yearUnknown" class="form-hint">
+      旧生日仅记录月日，选择完整日期可补全年份。
+    </view>
+    <label class="field-label mt-5" for="person-remark">备注（可选）</label><textarea
       id="person-remark"
       v-model="person.remark"
-      class="lined-input"
+      class="lined-input person-remark-input"
+      :auto-height="true"
       placeholder="关于这个人，一点小小的记挂…"
       :maxlength="1000"
     />

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Anniversary } from '@/domain/journal'
 import { onLoad } from '@dcloudio/uni-app'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import {
   categories,
   dateLabel,
@@ -19,7 +19,8 @@ const store = useJournalStore()
 const editing = ref(false)
 const busy = ref(false)
 const ready = ref(false)
-const month = ref(today().slice(0, 7))
+const reminderOpen = ref(false)
+const advancedOpen = ref(false)
 const initial = ref('')
 const event = ref<Anniversary>({
   id: newId(),
@@ -33,14 +34,6 @@ const event = ref<Anniversary>({
   description: '',
   tags: ['纪念'],
   images: [],
-})
-const cells = computed(() => {
-  const [year, m] = month.value.split('-').map(Number)
-  const start = (new Date(year, m - 1, 1).getDay() + 6) % 7
-  return [
-    ...Array.from({ length: start }, () => 0),
-    ...Array.from({ length: new Date(year, m, 0).getDate() }, (_, i) => i + 1),
-  ]
 })
 onLoad(async (options) => {
   await store.load()
@@ -66,7 +59,7 @@ onLoad(async (options) => {
     event.value.reminderDays = store.data.preferences.days
     event.value.reminderTime = store.data.preferences.time
   }
-  month.value = event.value.date.slice(0, 7)
+  reminderOpen.value = options?.section === 'reminder'
   if (
     typeof options?.personId === 'string'
     && store.data.people.some(person => person.id === options.personId)
@@ -76,23 +69,6 @@ onLoad(async (options) => {
   initial.value = JSON.stringify(event.value)
   ready.value = true
 })
-function changeMonth(amount: number) {
-  const [year, m] = month.value.split('-').map(Number)
-  const next = new Date(year, m - 1 + amount, 1)
-  month.value = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
-}
-function selectDate(day: number) {
-  if (day)
-    event.value.date = `${month.value}-${String(day).padStart(2, '0')}`
-}
-function occupied(day: number) {
-  return store.data.anniversaries.some(
-    item =>
-      item.id !== event.value.id
-      && item.date.slice(5)
-      === `${month.value.slice(5)}-${String(day).padStart(2, '0')}`,
-  )
-}
 async function cancel() {
   if (
     JSON.stringify(event.value) !== initial.value
@@ -160,178 +136,64 @@ async function save() {
 </script>
 
 <template>
-  <view class="journal-page editor-page">
+  <view class="journal-page editor-page compact-event-editor">
     <view class="editor-bar">
-      <button
-        role="button"
-        class="text-button"
-        :disabled="busy"
-        @click="cancel"
-      >
+      <button role="button" class="text-button" :disabled="busy" @click="cancel">
         取消
-      </button><text class="serif text-5">
-        {{ editing ? "修改纪念日" : "新的纪念日" }}
-      </text><button
-        role="button"
-        class="text-button strong"
-        :disabled="busy || !ready"
-        @click="save"
-      >
-        {{ busy ? "保存中…" : "存下" }}
-      </button>
+      </button><text class="serif text-5">{{ editing ? '修改纪念日' : '新建纪念日' }}</text><view class="w-11" />
     </view>
     <view v-if="ready" class="journal-content form-content">
-      <label class="field-label" for="event-title">为这天起个名字</label><input
-        id="event-title"
-        v-model="event.title"
-        class="title-input"
-        placeholder="比如，我们的结婚纪念日"
-        :maxlength="40"
-      >
-      <view v-if="event.birthdayPersonId" class="notice mt-4">
-        这是人物资料中的生日，日期修改后两处同步。生日主人的关联始终保留。
-      </view>
-      <fg-person-picker
-        v-model="event.personIds"
-        :locked-ids="event.birthdayPersonId ? [event.birthdayPersonId] : []"
-      />
-      <fg-tag-picker v-model="event.tags" label="标签" scope="event" :locked-tags="event.birthdayPersonId ? ['生日'] : []" />
-      <view class="field-label mt-7">
-        选一个日子 · 公历
-      </view>
-      <picker
-        mode="date"
-        :value="event.yearUnknown ? today() : event.date"
-        start="1900-01-01"
-        end="2100-12-31"
-        @change="
-          event.date = $event.detail.value;
-          event.yearUnknown = false;
-          month = event.date.slice(0, 7);
-        "
-      >
-        <view class="date-picker paper">
-          {{
-            event.yearUnknown
-              ? `${Number(event.date.slice(5, 7))}月${Number(event.date.slice(8))}日 · 请补全年份`
-              : dateLabel(event.date)
-          }}<text>快速选年 / 月 / 日 ›</text>
-        </view>
+      <label class="field-label" for="event-title">纪念日名称</label><input id="event-title" v-model="event.title" class="title-input" placeholder="比如，结婚纪念日" :maxlength="40">
+      <picker mode="date" :value="event.yearUnknown ? today() : event.date" start="1900-01-01" :end="event.birthdayPersonId ? today() : '2100-12-31'" @change="event.date = $event.detail.value; event.yearUnknown = false">
+        <button role="button" class="paper compact-option-row event-date-row" aria-label="公历日期">
+          <text>公历日期</text><text>{{ event.yearUnknown ? `${Number(event.date.slice(5, 7))}月${Number(event.date.slice(8))}日 · 补全年份` : dateLabel(event.date) }}</text><text>›</text>
+        </button>
       </picker>
-      <view v-if="!event.yearUnknown" class="paper calendar mt-3">
-        <view class="flex items-center justify-between">
-          <button
-            role="button"
-            class="icon-button"
-            aria-label="上个月"
-            @click="changeMonth(-1)"
-          >
-            ‹
-          </button><text class="serif text-5">{{ month.replace("-", " 年 ") }} 月</text><button
-            role="button"
-            class="icon-button"
-            aria-label="下个月"
-            @click="changeMonth(1)"
-          >
-            ›
+      <view v-if="event.birthdayPersonId" class="form-hint">
+        人物生日，日期与人物资料同步。
+      </view>
+      <fg-person-picker v-model="event.personIds" :locked-ids="event.birthdayPersonId ? [event.birthdayPersonId] : []" />
+      <fg-tag-picker v-model="event.tags" label="纪念日标签" scope="event" :locked-tags="event.birthdayPersonId ? ['生日'] : []" />
+      <view class="paper compact-options">
+        <picker :range="['每年', '只此一次']" :value="event.repeat === 'yearly' ? 0 : 1" :disabled="!!event.birthdayPersonId" @change="event.repeat = Number($event.detail.value) === 0 ? 'yearly' : 'once'">
+          <button role="button" class="compact-option-row" aria-label="重复方式" :disabled="!!event.birthdayPersonId">
+            <fg-journal-icon name="sync" /><text>重复</text><text>{{ event.repeat === 'yearly' ? '每年' : '只此一次' }}</text><text>›</text>
           </button>
-        </view><view class="calendar-grid">
-          <text
-            v-for="day in ['一', '二', '三', '四', '五', '六', '日']"
-            :key="day"
-            class="calendar-weekday"
-          >
-            {{ day }}
-          </text><button
-            v-for="(day, index) in cells"
-            :key="index"
-            role="button"
-            class="calendar-day"
-            :class="{
-              chosen: event.date === `${month}-${String(day).padStart(2, '0')}`,
-              occupied: day && occupied(day),
-            }"
-            :disabled="!day"
-            :aria-label="day ? `${month}-${day}` : '空日期'"
-            :aria-pressed="
-              event.date === `${month}-${String(day).padStart(2, '0')}`
-            "
-            @click="selectDate(day)"
-          >
-            {{ day || "" }}
-          </button>
-        </view><view class="muted mt-3 text-center text-3">
-          · 小圆点表示这一天已有纪念日
-        </view>
-      </view>
-      <view class="field-label mt-7">
-        多久一次
-      </view><view class="chips">
-        <button
-          role="button"
-          class="chip"
-          :class="{ selected: event.repeat === 'yearly' }"
-          @click="event.repeat = 'yearly'"
-        >
-          每年
-        </button><button
-          role="button"
-          class="chip"
-          :class="{ selected: event.repeat === 'once' }"
-          :disabled="!!event.birthdayPersonId"
-          @click="event.repeat = 'once'"
-        >
-          只此一次
+        </picker>
+        <button role="button" class="compact-option-row" aria-label="提醒设置" :aria-expanded="reminderOpen" @click="reminderOpen = !reminderOpen">
+          <fg-journal-icon name="bell" /><text>提醒</text><text>{{ event.reminderDays ? `提前${event.reminderDays}天` : '当天' }} · {{ event.reminderTime }}</text><text>{{ reminderOpen ? '⌃' : '›' }}</text>
         </button>
-      </view><view
-        v-if="event.date.endsWith('02-29') && event.repeat === 'yearly'"
-        class="notice mt-3"
-      >
-        非闰年按 2 月 28 日纪念，原始日期保持不变。
-      </view>
-      <view class="field-label mt-7">
-        提前多久提醒我
-      </view><view class="chips">
-        <button
-          v-for="days in [0, 1, 3, 7]"
-          :key="days"
-          role="button"
-          class="chip"
-          :class="{ selected: event.reminderDays === days }"
-          @click="event.reminderDays = days"
-        >
-          {{ days ? `提前 ${days} 天` : "当天" }}
-        </button>
-      </view>
-      <view class="paper settings-group mt-5">
-        <picker
-          mode="time"
-          :value="event.reminderTime"
-          @change="event.reminderTime = $event.detail.value"
-        >
-          <view class="settings-row">
-            <fg-journal-icon name="clock" /><text class="flex-1">提醒时刻</text><text>{{ event.reminderTime }} ›</text>
+        <view v-if="reminderOpen" class="reminder-fields">
+          <view class="field-label">
+            提前提醒
+          </view><view class="chips">
+            <button v-for="days in [0, 1, 3, 7]" :key="days" role="button" class="chip" :class="{ selected: event.reminderDays === days }" :aria-pressed="event.reminderDays === days" @click="event.reminderDays = days">
+              {{ days ? `提前 ${days} 天` : '当天' }}
+            </button>
           </view>
-        </picker><view class="settings-row">
-          <fg-journal-icon name="star" /><text class="flex-1">
-            设为首页主卡
-          </text><switch
-            :checked="event.pinned"
-            color="#b44232"
-            @change="event.pinned = $event.detail.value"
-          />
+          <picker mode="time" :value="event.reminderTime" @change="event.reminderTime = $event.detail.value">
+            <button role="button" class="compact-option-row" aria-label="提醒时刻">
+              <text>提醒时刻</text><text>{{ event.reminderTime }}</text><text>›</text>
+            </button>
+          </picker>
+        </view>
+        <button role="button" class="compact-option-row" aria-label="更多纪念日设置" :aria-expanded="advancedOpen" @click="advancedOpen = !advancedOpen">
+          <fg-journal-icon name="gear" /><text>更多设置</text><text>{{ event.pinned ? '首页主卡' : '' }}</text><text>{{ advancedOpen ? '⌃' : '›' }}</text>
+        </button>
+        <view v-if="advancedOpen" class="compact-option-row">
+          <text>设为首页主卡</text><switch aria-label="设为首页主卡" :checked="event.pinned" color="#b44232" @change="event.pinned = $event.detail.value" />
         </view>
       </view>
-      <view class="notice mt-3">
-        提醒规则会保存在本机，当前版本暂不发送系统通知。
+      <view v-if="event.date.endsWith('02-29') && event.repeat === 'yearly'" class="form-hint">
+        非闰年按 2 月 28 日纪念，原始日期不变。
       </view>
-      <button
-        role="button"
-        class="primary-button my-6"
-        :disabled="busy"
-        @click="save"
-      >
-        {{ busy ? "正在存下…" : "存下这个日子" }}
+      <view class="form-hint">
+        仅保存提醒偏好，暂不发送系统通知。
+      </view>
+    </view>
+    <view v-if="ready" class="editor-save-area">
+      <button role="button" class="primary-button" :disabled="busy" @click="save">
+        {{ busy ? '正在保存…' : editing ? '保存' : '保存纪念日' }}
       </button>
     </view>
   </view>

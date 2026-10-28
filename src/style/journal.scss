@@ -2185,3 +2185,482 @@ page {
     font-size: 16px;
   }
 }
+
+/* 表单优先呈现正文与必要设置；保存区保留在正常流中，避免压住末尾字段。 */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+.compact-compose,
+.compact-event-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 0;
+}
+.compact-compose .form-content,
+.compact-event-editor .form-content {
+  flex: 1;
+  padding-top: 18px;
+  padding-bottom: 20px;
+  min-width: 0;
+}
+.editor-save-area {
+  position: sticky;
+  bottom: 0;
+  z-index: 12;
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 12px 20px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--edge-soft);
+  background: var(--paper-0);
+}
+.compact-compose .compose-title {
+  font-size: 20px;
+  height: 46px;
+  margin-bottom: 12px;
+}
+.compact-compose .note-writing {
+  min-height: 160px;
+  font-size: 14px !important;
+}
+.compact-compose .photo-actions {
+  width: 100%;
+}
+.compact-compose .add-photo {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  height: 76px;
+}
+.journal-page .place-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  color: var(--ink-500);
+  font-size: 12px;
+  text-align: left;
+}
+.place-toggle .journal-icon {
+  width: 15px;
+  height: 15px;
+}
+.compose-place {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.compose-place .plain-input {
+  flex: 1;
+  min-width: 0;
+}
+.source-event-label {
+  font-size: 11px;
+}
+.compact-options {
+  overflow: hidden;
+  margin-top: 20px;
+}
+.journal-page .compact-option-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px;
+  text-align: left;
+  font-size: 13px;
+}
+.compact-option-row > .journal-icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+.compact-option-row > text:first-of-type {
+  flex: 1;
+  min-width: 0;
+}
+.compact-option-row > text:not(:first-of-type) {
+  color: var(--ink-500);
+  font-size: 12px;
+}
+.compact-option-row > text:last-of-type:not(:first-of-type) {
+  flex-shrink: 0;
+}
+.compact-options > :not(:last-child) {
+  border-bottom: 1px solid var(--edge-soft);
+}
+.event-date-row {
+  margin-top: 16px;
+}
+.event-date-row > text:nth-of-type(2) {
+  max-width: 70%;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.form-hint {
+  font: 11px/1.7 var(--font-body);
+  color: var(--ink-500);
+  margin-top: 8px;
+}
+.reminder-fields {
+  padding: 12px;
+  background: var(--paper-0);
+}
+.journal-page .reminder-fields .chip {
+  min-height: 32px;
+  padding: 4px 9px;
+  font-size: 11px;
+}
+.reminder-fields .compact-option-row {
+  padding: 12px 0 0;
+}
+.note-reading-page .detail-cover {
+  height: clamp(160px, 55vw, 240px);
+}
+.note-reading-page .note-detail-paper {
+  margin: 0;
+  padding: 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.note-reading-page .note-detail-paper.has-cover {
+  margin-top: 0;
+}
+.note-reading-title {
+  font: 500 22px/1.5 var(--font-hand);
+  margin: 10px 0 16px;
+  overflow-wrap: anywhere;
+}
+.note-reading-page .detail-body {
+  font-size: 14px;
+  line-height: 1.9;
+}
+.note-reading-page .detail-signature {
+  font-size: 12px;
+  margin-top: 22px;
+}
+.event-reading-page .journal-content {
+  padding-top: 16px;
+}
+.event-summary-card {
+  padding: 18px 16px;
+  text-align: center;
+  background: linear-gradient(140deg, var(--paper-1), #fff1e9);
+}
+.summary-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.summary-tags .note-tag {
+  background: var(--cinnabar-100);
+  color: var(--cinnabar-text);
+  border-radius: 12px;
+}
+.event-summary-title {
+  font: 500 22px/1.5 var(--font-hand);
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.event-summary-count {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 5px;
+  color: var(--cinnabar-text);
+}
+.event-summary-count > text:first-child {
+  font: 48px/1.1 var(--font-display);
+}
+.event-summary-count > text:last-child {
+  font-size: 12px;
+}
+.event-summary-count + view {
+  margin-top: 10px;
+}
+.event-milestone {
+  color: var(--ink-500);
+  font-size: 11px;
+  margin-top: 4px;
+}
+.event-summary-people {
+  justify-content: center;
+  margin-top: 12px;
+}
+.journal-page .detail-facts {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  font-size: 12px;
+  text-align: left;
+}
+.detail-facts > .journal-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.detail-facts > view {
+  flex: 1;
+  min-width: 0;
+}
+.detail-facts .form-hint {
+  font-size: 10px;
+  margin-top: 3px;
+}
+.event-reading-page .year-label {
+  font: 15px var(--font-hand);
+  margin: 16px 0 10px;
+}
+.event-reading-page .event-story {
+  margin-top: 20px;
+}
+.people-list-panel {
+  overflow: hidden;
+}
+.journal-page .people-list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  min-height: 66px;
+  text-align: left;
+  border-bottom: 1px solid var(--edge-soft);
+}
+.people-list-row:last-child {
+  border-bottom: 0;
+}
+.people-list-row > .flex-1 {
+  min-width: 0;
+}
+.people-list-name {
+  font: 500 16px/1.5 var(--font-hand);
+  overflow-wrap: anywhere;
+}
+.people-list-birthday {
+  color: var(--ink-500);
+  font-size: 11px;
+  margin-top: 2px;
+}
+.person-reading-page .form-content {
+  padding-top: 16px;
+}
+.person-reading-page .person-detail-header {
+  padding: 6px 0 0;
+}
+.person-reading-name {
+  font: 500 20px/1.5 var(--font-hand);
+  margin-top: 8px;
+}
+.person-reading-page .person-select-row {
+  padding: 12px;
+  min-height: 50px;
+  gap: 8px;
+  font-size: 13px;
+}
+.person-reading-page .event-message {
+  font: 13px/1.8 var(--font-hand);
+  text-align: left;
+  margin-bottom: 16px;
+}
+.person-birthday-count {
+  color: var(--cinnabar-text);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.record-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--edge);
+  margin-bottom: 18px;
+}
+.journal-page .record-tab {
+  position: relative;
+  min-height: 44px;
+  flex: 1;
+  color: var(--ink-500);
+  font-size: 14px;
+}
+.record-tab.selected {
+  color: var(--cinnabar-text);
+}
+.record-tab.selected::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: calc(50% - 24px);
+  width: 48px;
+  height: 2px;
+  background: var(--cinnabar-600);
+}
+.compact-person-editor .person-avatar-editor {
+  margin: 16px 0 18px;
+}
+.person-avatar-control {
+  position: relative;
+  width: 64px;
+}
+.journal-page .avatar-more {
+  position: absolute;
+  right: -12px;
+  top: 44px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--edge-soft);
+  border-radius: 50%;
+  background: var(--paper-1);
+  color: var(--ink-500);
+  font: 16px/1 var(--font-body);
+}
+.person-birthday-row {
+  display: flex;
+  align-items: center;
+  margin-top: 18px;
+}
+.person-birthday-row > picker {
+  flex: 1;
+  min-width: 0;
+}
+.person-birthday-row .compact-option-row {
+  gap: 8px;
+}
+.person-birthday-row > .text-button {
+  padding-right: 12px;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+.compact-person-editor .person-remark-input {
+  min-height: 96px;
+  height: 96px;
+}
+.journal-page .calendar-today {
+  font-size: 12px;
+  color: var(--cinnabar-text);
+  min-height: 44px;
+  padding: 0 6px;
+}
+.journal-help-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin: 22px 0;
+  color: var(--ink-500);
+  font-size: 12px;
+  text-align: center;
+}
+.journal-help-brand > image {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 5px;
+}
+.journal-help-brand > view {
+  font: 500 22px/1.5 var(--font-hand);
+  color: var(--ink-900);
+}
+.journal-help-compact .journal-help-brand {
+  margin-top: 12px;
+}
+.journal-help-compact .journal-help-brand > image {
+  width: 44px;
+  height: 44px;
+}
+.journal-help-section {
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.journal-help-section > view {
+  color: var(--cinnabar-text);
+  font: 500 15px/1.5 var(--font-hand);
+  margin-bottom: 6px;
+}
+.journal-help-section > text {
+  color: var(--ink-700);
+  font-size: 12px;
+  line-height: 1.85;
+}
+.journal-help-demo {
+  color: var(--ink-500);
+  font-size: 11px;
+  text-align: center;
+  margin: 14px 0;
+}
+.compact-login .login-content {
+  padding: 22px 24px 30px;
+}
+.compact-login .brand-seal {
+  font-size: 18px;
+  border-width: 1px;
+  padding: 4px 8px;
+  transform: none;
+}
+.login-title {
+  font: 500 24px/1.5 var(--font-hand);
+  margin: 16px 0 4px;
+}
+.login-subtitle {
+  color: var(--ink-500);
+  font: 13px/1.6 var(--font-hand);
+  margin-bottom: 24px;
+}
+.compact-login .field-label {
+  font-size: 11px;
+  margin-bottom: 3px;
+}
+.compact-login .login-field {
+  padding: 4px 0;
+}
+.login-demo {
+  color: var(--ink-500);
+  font-size: 11px;
+  margin-top: 12px;
+}
+.compact-login .agreement {
+  font-size: 11px;
+}
+.journal-page .login-skip {
+  display: flex;
+  width: 100%;
+  margin-top: 12px;
+}
+.login-local-note {
+  font-size: 10px;
+  color: var(--ink-500);
+  line-height: 1.8;
+  margin-top: 12px;
+  text-align: center;
+}
+@media (max-width: 360px) {
+  .note-reading-title,
+  .event-summary-title {
+    font-size: 20px;
+  }
+  .event-summary-count > text:first-child {
+    font-size: 42px;
+  }
+  .person-birthday-row .compact-option-row {
+    font-size: 12px;
+    padding: 10px;
+  }
+  .person-birthday-row .compact-option-row > text:not(:first-of-type) {
+    font-size: 11px;
+  }
+  .person-reading-page .person-select-row {
+    font-size: 12px;
+  }
+}

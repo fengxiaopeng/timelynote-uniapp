@@ -27,3 +27,9 @@ export function previewImage(options: {
 }) {
   uni.previewImage(options)
 }
+
+/** 取消菜单不触发任何操作。删除仍由各用例单独确认。 */
+export async function chooseAction(items: string[]) {
+  const result = await uni.showActionSheet({ itemList: items }).catch(() => null)
+  return result?.tapIndex ?? null
+}

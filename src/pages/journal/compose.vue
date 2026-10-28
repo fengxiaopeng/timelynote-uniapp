@@ -14,6 +14,7 @@ const note = ref<Note>(blankNote())
 const editing = ref(false)
 const ready = ref(false)
 const busy = ref(false)
+const placeOpen = ref(false)
 const initial = ref('')
 onLoad(async (options) => {
   await store.load()
@@ -49,6 +50,7 @@ onLoad(async (options) => {
       ...new Set([...(note.value.personIds || []), options.personId]),
     ]
   }
+  placeOpen.value = !!note.value.place
   initial.value = JSON.stringify(note.value)
   ready.value = true
 })
@@ -125,7 +127,7 @@ async function save() {
 </script>
 
 <template>
-  <view class="journal-page editor-page compose-page">
+  <view class="journal-page editor-page compose-page compact-compose">
     <view class="editor-bar">
       <button role="button" class="text-button" :disabled="busy" @click="leave">
         稍后
@@ -147,20 +149,18 @@ async function save() {
       </picker>
     </view>
     <view v-if="ready" class="journal-content form-content">
-      <view class="serif mb-6 mt-3 text-7">
-        今天，有什么想留下？
-      </view>
       <view v-if="note.anniversaryId" class="source-event-label muted mb-5 text-3">
         来自纪念日 · {{ store.data.anniversaries.find(event => event.id === note.anniversaryId)?.title || "已删除的纪念日" }}
       </view>
-      <label class="field-label" for="note-title">给这一刻起个名字（可选）</label><input
+      <input
         id="note-title"
         v-model="note.title"
-        class="title-input"
-        placeholder="一页平凡而珍贵的日常"
+        class="title-input compose-title"
+        aria-label="手记标题（可选）"
+        placeholder="标题（可选）"
         :maxlength="60"
       >
-      <label class="field-label mt-6" for="note-content">想记下的话</label><textarea
+      <label class="visually-hidden" for="note-content">想记下的话</label><textarea
         id="note-content"
         v-model="note.content"
         class="lined-input note-writing"
@@ -177,20 +177,18 @@ async function save() {
       />
       <fg-person-picker v-model="note.personIds" />
       <fg-tag-picker v-model="note.tags" />
-      <label class="field-label mt-6" for="note-place">地点（可选）</label><input
-        id="note-place"
-        v-model="note.place"
-        class="plain-input"
-        placeholder="在哪里留下了这段回忆"
-        :maxlength="60"
-      >
-      <button
-        role="button"
-        class="primary-button my-7"
-        :disabled="busy"
-        @click="save"
-      >
-        {{ busy ? "正在存下…" : "存下手记" }}
+      <button v-if="!placeOpen" role="button" class="place-toggle" @click="placeOpen = true">
+        <fg-journal-icon name="pin" />添加地点（可选）
+      </button>
+      <view v-else class="compose-place">
+        <input id="note-place" v-model="note.place" class="plain-input" aria-label="地点（可选）" placeholder="在哪里留下了这段回忆" :maxlength="60"><button role="button" class="text-button" aria-label="移除地点" @click="note.place = ''; placeOpen = false">
+          移除
+        </button>
+      </view>
+    </view>
+    <view v-if="ready" class="editor-save-area">
+      <button role="button" class="primary-button" :disabled="busy" @click="save">
+        {{ busy ? "正在保存…" : editing ? "保存" : "保存手记" }}
       </button>
     </view>
   </view>

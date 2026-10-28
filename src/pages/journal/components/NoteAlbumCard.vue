@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { Note } from '@/domain/journal'
 import { computed, ref, watch } from 'vue'
-import { shortDate } from '@/domain/note-views'
+import { today } from '@/domain/journal'
+import { albumDate } from '@/domain/note-views'
 import { navigate, previewImage } from '@/utils/journal-ui'
 
 const props = defineProps<{ note: Note }>()
@@ -97,7 +98,7 @@ function detail() {
           {{ note.title || "一页日常" }}<text v-if="note.sample" class="sample-label ml-2">示例</text>
         </view>
         <view class="album-date">
-          {{ shortDate(note.date) }}
+          {{ albumDate(note.date, today()) }}
         </view>
       </view><view class="album-excerpt">
         {{ note.content || "把这一刻，留在照片里。" }}

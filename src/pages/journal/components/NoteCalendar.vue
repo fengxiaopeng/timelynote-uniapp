@@ -44,6 +44,11 @@ function changeMonth(month: string) {
   emit('update:month', month)
   emit('update:selected', dayInMonth(props.selected, month))
 }
+function goToday() {
+  const date = today()
+  emit('update:month', date.slice(0, 7))
+  emit('update:selected', date)
+}
 function open(note: Note) {
   navigate({
     url: `/pages/journal/note-detail?id=${encodeURIComponent(note.id)}`,
@@ -85,6 +90,8 @@ function open(note: Note) {
         @click="changeMonth(shiftMonth(month, 1))"
       >
         ›
+      </button><button role="button" class="calendar-today" @click="goToday">
+        今天
       </button>
     </view>
     <view class="note-calendar-grid">
@@ -125,6 +132,7 @@ function open(note: Note) {
         v-model="visibleNotes"
         :fixed="false"
         :auto="false"
+        :auto-full-height="false"
         :use-page-scroll="true"
         :default-page-size="20"
         :refresher-enabled="false"

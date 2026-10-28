@@ -65,7 +65,7 @@ async function login() {
 </script>
 
 <template>
-  <view class="journal-page login-page">
+  <view class="journal-page login-page compact-login">
     <view class="editor-bar">
       <button role="button" class="icon-button" aria-label="返回" @click="back">
         <fg-journal-icon name="chevL" />
@@ -74,11 +74,12 @@ async function login() {
     <view class="login-content">
       <view class="brand-seal">
         如<br>期
-      </view><view class="serif mt-7 text-9">
-        把时光，<br>放在心上。
-      </view><view class="muted mb-10 mt-3 text-3.5">
-        登录后，继续书写属于你的日常。
-      </view><label class="field-label" for="login-phone">手机号码</label><view class="login-field">
+      </view><view class="login-title">
+        登录后，继续记录
+      </view><view class="login-subtitle">
+        把日子，慢慢记下来。
+      </view>
+      <label class="field-label" for="login-phone">手机号码</label><view class="login-field">
         <text class="muted">+86</text><input
           id="login-phone"
           v-model="phone"
@@ -103,9 +104,9 @@ async function login() {
         >
           {{ seconds ? `${seconds}s 后重试` : "获取验证码" }}
         </button>
-      </view><view class="notice mt-4">
+      </view><view class="login-demo">
         单机体验 · 验证码始终为 <strong>9999</strong>
-      </view><view class="agreement mt-6">
+      </view><view class="agreement mt-5">
         <checkbox-group
           @change="agreed = $event.detail.value.includes('agree')"
         >
@@ -137,8 +138,10 @@ async function login() {
         @click="login"
       >
         {{ busy ? "正在登录…" : "登录 / 开始记录" }}
-      </button><view class="muted mt-6 text-center text-3 leading-6">
-        本地模拟登录，不验证手机号归属。<br>记录保存在当前浏览器，不会自动上传或跨设备同步。<br>游客记录与各手机号的手账分别保存。
+      </button><button role="button" class="text-button login-skip" @click="back">
+        暂不登录
+      </button><view class="login-local-note">
+        游客与账号手账分别保存 · 数据保存在本机。
       </view>
     </view>
     <view v-if="policy" class="modal-overlay" @click.self="policy = ''">

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   back,
+  chooseAction,
   confirmAction,
   navigate,
   previewImage,
@@ -11,7 +12,6 @@ import { computed, ref } from 'vue'
 import {
   countdown,
   dateLabel,
-  daysBetween,
   nextOccurrence,
   today,
 } from '@/domain/journal'
@@ -45,17 +45,6 @@ const nextDate = computed(() =>
 const count = computed(() =>
   event.value ? countdown(event.value, date.value) : 0,
 )
-const progress = computed(() =>
-  event.value?.repeat === 'yearly'
-    ? Math.max(0, Math.min(1, 1 - count.value / 365))
-    : Math.max(
-        0,
-        Math.min(
-          1,
-          daysBetween(event.value?.date || date.value, date.value) >= 0 ? 1 : 0,
-        ),
-      ),
-)
 const anniversaryYear = computed(
   () =>
     Number(nextDate.value.slice(0, 4)) - Number(event.value?.date.slice(0, 4)),
@@ -67,6 +56,13 @@ onShow(async () => {
   date.value = today()
   await store.load()
 })
+async function more() {
+  const choice = await chooseAction(['编辑纪念日', '删除纪念日'])
+  if (choice === 0)
+    navigate({ url: `/pages/journal/event-edit?id=${encodeURIComponent(id.value)}` })
+  if (choice === 1)
+    await remove()
+}
 async function remove() {
   if (
     !(await confirmAction(
@@ -90,68 +86,61 @@ async function remove() {
 </script>
 
 <template>
-  <view class="journal-page detail-page">
+  <view class="journal-page detail-page event-reading-page">
     <view class="editor-bar">
       <button role="button" class="icon-button" aria-label="返回" @click="back">
         <fg-journal-icon name="chevL" />
-      </button><text class="muted text-3">
-        {{ event?.category || "纪念日"
-        }}<template
-          v-if="
-            event?.repeat === 'yearly'
-              && !event.yearUnknown
-              && anniversaryYear > 0
-          "
-        >
-          · {{ anniversaryYear }}
-          {{ event.category === "生日" ? "岁生日" : "周年" }}
-        </template>
-      </text><button v-if="event" role="button" class="text-button strong" @click="navigate({ url: `/pages/journal/event-edit?id=${encodeURIComponent(id)}` })">
-        编辑
-      </button><button
-        v-if="event"
-        role="button"
-        class="icon-button"
-        aria-label="删除纪念日"
-        @click="remove"
-      >
-        ×
-      </button>
+      </button><text class="serif text-5">纪念日详情</text><button v-if="event" role="button" class="icon-button" aria-label="更多纪念日操作" @click="more">
+        ⋯
+      </button><view v-else class="w-11" />
     </view>
     <template v-if="event">
-      <view class="event-hero">
-        <view
-          class="progress-ring"
-          :style="{
-            background: `conic-gradient(var(--cinnabar-600) ${progress * 360}deg, var(--edge-soft) 0deg)`,
-          }"
-        >
-          <view class="ring-inner">
-            <text class="hero-number">{{ Math.abs(count) }}</text><text class="muted text-3">
-              {{ count === 0 ? "就是今天" : count > 0 ? "天后" : "天前" }}
-            </text>
-          </view>
-        </view><view class="serif mt-6 text-8">
-          {{ event.title }}
-        </view><view class="muted mt-2 text-3.5">
-          {{ dateLabel(nextDate) }}
-        </view><view class="reminder-badge mt-5">
-          {{ event.reminderDays ? `提前 ${event.reminderDays} 天` : "当天" }} ·
-          {{ event.reminderTime }} · 规则已保存
-        </view><view class="muted mt-3 text-3">
-          H5 单机版暂不发送系统通知
-        </view><text v-if="event.sample" class="sample-label mt-3">示例纪念日</text>
-      </view>
       <view class="journal-content">
-        <view v-if="event.personIds?.length" class="mb-5">
-          <view class="field-label">
-            一起记得
-          </view><fg-person-tags :ids="event.personIds" />
+        <view class="paper event-summary-card">
+          <view class="summary-tags">
+            <text v-for="tag in event.tags" :key="tag" class="note-tag">{{ tag }}</text><text v-if="!event.tags?.length" class="note-tag">{{ event.category }}</text>
+          </view>
+          <view class="event-summary-title">
+            {{ event.title }}
+          </view>
+          <view class="event-summary-count">
+            <text>{{ Math.abs(count) }}</text><text>{{ count === 0 ? '就是今天' : count > 0 ? '天后' : '天前' }}</text>
+          </view>
+          <view class="muted text-3">
+            {{ dateLabel(nextDate) }}
+          </view>
+          <view v-if="event.repeat === 'yearly' && !event.yearUnknown && anniversaryYear > 0" class="event-milestone">
+            {{ anniversaryYear }}{{ event.category === '生日' ? '岁生日' : '周年' }}
+          </view>
+          <fg-person-tags :ids="event.personIds" class="event-summary-people" />
+          <text v-if="event.sample" class="sample-label">示例纪念日</text>
         </view>
-        <view v-if="event.tags?.length" class="mb-5 flex flex-wrap gap-2">
-          <text v-for="tag in event.tags" :key="tag" class="note-tag">{{ tag }}</text>
-        </view>
-        <view
+        <button role="button" class="paper detail-facts" aria-label="调整纪念日设置" @click="navigate({ url: `/pages/journal/event-edit?id=${encodeURIComponent(id)}&section=reminder` })">
+          <fg-journal-icon name="cal" /><view>
+            <view>{{ event.repeat === 'yearly' ? '每年纪念' : '只此一次' }} · {{ event.reminderDays ? `提前${event.reminderDays}天` : '当天' }} · {{ event.reminderTime }}</view><view class="form-hint">
+              仅保存偏好，暂不发送通知。
+            </view>
+          </view><text>›</text>
+        </button>
+        <view v-if="notes.length" class="section-label mt-6">
+          这一天的手记<text>{{ notes.length }}</text>
+        </view><view v-for="year in groups" :key="year" class="mb-7">
+          <view class="year-label">
+            {{ year }}<text>年</text>
+          </view><view class="record-list">
+            <view
+              v-for="note in notes.filter((item) =>
+                (item.occurrence || item.date).startsWith(year),
+              )"
+              :key="note.id"
+              class="record-list-item"
+            >
+              <NoteCard :note="note" />
+            </view>
+          </view>
+        </view><view v-if="!notes.length" class="small-empty serif">
+          写一篇手记，记下与这一天有关的回忆。
+        </view><view
           v-if="event.description || event.images?.length"
           class="paper event-story"
         >
@@ -172,24 +161,6 @@ async function remove() {
               @click="previewImage({ urls: event.images || [], current: src })"
             />
           </view>
-        </view><view v-if="notes.length" class="section-label mt-6">
-          这一天的手记<text>{{ notes.length }}</text>
-        </view><view v-for="year in groups" :key="year" class="mb-7">
-          <view class="year-label">
-            {{ year }}<text>年</text>
-          </view><view class="record-list">
-            <view
-              v-for="note in notes.filter((item) =>
-                (item.occurrence || item.date).startsWith(year),
-              )"
-              :key="note.id"
-              class="record-list-item"
-            >
-              <NoteCard :note="note" />
-            </view>
-          </view>
-        </view><view v-if="!notes.length" class="small-empty serif">
-          写一篇手记，记下与这一天有关的回忆。
         </view><view class="muted mt-6 text-center text-3">
           最初的日子 ·
           {{

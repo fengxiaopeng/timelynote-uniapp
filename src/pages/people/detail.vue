@@ -2,8 +2,9 @@
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
 import { birthdayLabel, birthdayOf } from '@/domain/people'
+import { countdown } from '@/domain/journal'
 import { useJournalStore } from '@/store/journal'
-import { back, confirmAction, navigate, toast } from '@/utils/journal-ui'
+import { back, chooseAction, confirmAction, navigate, toast } from '@/utils/journal-ui'
 import AnniversaryList from '@/pages/journal/components/AnniversaryList.vue'
 import NoteList from '@/pages/journal/components/NoteList.vue'
 
@@ -32,6 +33,13 @@ onLoad((options) => {
 onShow(() => {
   void store.load()
 })
+async function more() {
+  const choice = await chooseAction(['编辑人物资料', '删除人物资料'])
+  if (choice === 0)
+    navigate({ url: `/pages/people/edit?id=${encodeURIComponent(id.value)}` })
+  if (choice === 1)
+    await remove()
+}
 async function remove() {
   if (
     busy.value
@@ -58,7 +66,7 @@ async function remove() {
 </script>
 
 <template>
-  <view class="journal-page editor-page">
+  <view class="journal-page detail-page person-reading-page">
     <view class="editor-bar">
       <button
         role="button"
@@ -67,19 +75,12 @@ async function remove() {
         @click="back"
       >
         <fg-journal-icon name="chevL" />
-      </button><text class="serif text-5">重要的人</text><button
-        v-if="person"
-        role="button"
-        class="text-button strong"
-        @click="
-          navigate({ url: `/pages/people/edit?id=${encodeURIComponent(id)}` })
-        "
-      >
-        编辑
-      </button>
+      </button><text class="serif text-5">重要的人</text><button v-if="person" role="button" class="icon-button" aria-label="更多人物操作" @click="more">
+        ⋯
+      </button><view v-else class="w-11" />
     </view><view v-if="person" class="journal-content form-content">
       <view class="person-detail-header">
-        <fg-person-avatar :name="person.name" :src="person.avatar" :size="72" /><view class="serif mt-4 text-8">
+        <fg-person-avatar :name="person.name" :src="person.avatar" :size="56" /><view class="person-reading-name">
           {{ person.name }}
         </view>
       </view><button
@@ -94,26 +95,26 @@ async function remove() {
         "
       >
         <fg-journal-icon name="cal" /><view class="flex-1">
-          <view>{{ birthdayLabel(birthday) }}</view><view v-if="birthday" class="muted mt-1 text-3">
-            生日也是值得纪念的一天
-          </view>
-        </view><text>›</text>
+          <view>{{ birthdayLabel(birthday) }}</view>
+        </view><text v-if="birthday" class="person-birthday-count">{{ countdown(birthday) ? `${countdown(birthday)}天后` : '就是今天' }}</text><text>›</text>
       </button><view v-if="person.remark" class="event-message">
         {{
           person.remark
         }}
-      </view><view class="chips mb-5">
+      </view><view class="record-tabs" role="tablist" aria-label="人物记录">
         <button
-          role="button"
-          class="chip"
+          role="tab"
+          class="record-tab"
           :class="{ selected: tab === 'events' }"
+          :aria-selected="tab === 'events'"
           @click="tab = 'events'"
         >
           纪念日 · {{ events.length }}
         </button><button
-          role="button"
-          class="chip"
+          role="tab"
+          class="record-tab"
           :class="{ selected: tab === 'notes' }"
+          :aria-selected="tab === 'notes'"
           @click="tab = 'notes'"
         >
           手记 · {{ notes.length }}
@@ -132,7 +133,7 @@ async function remove() {
         >
           还没有与这个人有关的手记。
         </view>
-      </template><view class="mt-6 flex gap-3">
+      </template><view class="detail-actions">
         <button
           role="button"
           class="outline-button flex-1"
@@ -154,14 +155,7 @@ async function remove() {
         >
           写一篇手记
         </button>
-      </view><button
-        role="button"
-        class="text-button my-4 w-full"
-        :disabled="busy"
-        @click="remove"
-      >
-        删除人物资料
-      </button>
+      </view>
     </view><view v-else-if="!store.loading" class="small-empty">
       这位人物已不在这里，记录仍在手账中。
     </view>
