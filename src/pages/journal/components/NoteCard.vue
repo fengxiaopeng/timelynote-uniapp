@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { navigate } from '@/utils/journal-ui'
 
 const props = defineProps<{ note: Note, compact?: boolean }>()
+const photos = computed(() => props.note.images.slice(0, props.compact ? 1 : 3))
 const sample = computed(() => !props.note.images.length && props.note.sample && props.note.id === 'sample-sea')
 </script>
 
@@ -17,10 +18,10 @@ const sample = computed(() => !props.note.images.length && props.note.sample && 
     <view v-if="note.content" class="note-excerpt">
       {{ note.content }}
     </view>
-    <view v-if="note.images.length" class="note-gallery" :class="{ 'note-gallery-single': note.images.length === 1, 'note-gallery-pair': note.images.length === 2, 'note-gallery-grid': note.images.length >= 3 }">
-      <view v-for="(src, index) in note.images.slice(0, 3)" :key="index" class="note-photo-cell">
+    <view v-if="note.images.length" class="note-gallery" :class="{ 'note-gallery-single': compact || note.images.length === 1, 'note-gallery-pair': !compact && note.images.length === 2, 'note-gallery-grid': !compact && note.images.length >= 3 }">
+      <view v-for="(src, index) in photos" :key="index" class="note-photo-cell">
         <image :src="src" mode="aspectFill" :aria-label="`${note.title || '手记'}，第 ${index + 1} 张照片`" />
-        <text v-if="index === 2 && note.images.length > 3" class="more-images">+{{ note.images.length - 3 }}</text>
+        <text v-if="compact ? note.images.length > 1 : index === 2 && note.images.length > 3" class="more-images">+{{ note.images.length - (compact ? 1 : 3) }}</text>
       </view>
     </view>
     <view v-else-if="sample" class="note-gallery note-gallery-grid">

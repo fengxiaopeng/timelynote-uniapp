@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onShow } from '@dcloudio/uni-app'
 import { computed, ref } from 'vue'
-import { countdown, daysBetween, today } from '@/domain/journal'
+import { countdown, today } from '@/domain/journal'
 import { matchesRecordFacets } from '@/domain/record-filters'
 import { peopleText } from '@/domain/people'
 import { useJournalStore } from '@/store/journal'
+import HomeFeatured from './HomeFeatured.vue'
+import HomeUpcoming from './HomeUpcoming.vue'
 import AnniversaryCard from './AnniversaryCard.vue'
 import AnniversaryList from './AnniversaryList.vue'
 import NoteList from './NoteList.vue'
@@ -19,23 +21,6 @@ const selectedTags = ref<string[]>([])
 const selectedPeople = ref<string[]>([])
 const reminderOpen = ref(false)
 const date = ref(today())
-const monthName = computed(
-  () =>
-    [
-      '一月',
-      '二月',
-      '三月',
-      '四月',
-      '五月',
-      '六月',
-      '七月',
-      '八月',
-      '九月',
-      '十月',
-      '十一月',
-      '十二月',
-    ][Number(date.value.slice(5, 7)) - 1],
-)
 const pinned = computed(() =>
   store.data.anniversaries.find(item => item.pinned),
 )
@@ -72,6 +57,7 @@ const upcoming = computed(() =>
     .filter(event => countdown(event, date.value) >= 0)
     .slice(0, 5),
 )
+const featured = computed(() => pinned.value || upcoming.value[0] || store.sortedEvents[store.sortedEvents.length - 1])
 onShow(() => {
   if (owner.value !== store.owner) {
     selectedTags.value = []
@@ -98,49 +84,33 @@ async function samples() {
 
 <template>
   <view class="journal-page feed-page" :class="{ 'events-workspace': mode === 'events', 'home-workspace': mode === 'home' }">
-    <view class="journal-appbar" :class="{ 'events-appbar': mode === 'events' }">
-      <view>
-        <view class="page-title">
-          {{
-            mode === "home" ? monthName : "值得纪念"
-          }}
-        </view><view class="eyebrow">
-          {{
-            mode === "home" ? `${date.slice(0, 4)} · ${new Date(`${date}T12:00:00`).toLocaleDateString("zh-CN", { weekday: "long" })}` : "把重要的日子，放在心上"
-          }}
+    <view v-if="mode === 'home'" class="home-header">
+      <view class="home-header-top">
+        <text class="home-date">{{ Number(date.slice(0, 4)) }}年{{ Number(date.slice(5, 7)) }}月{{ Number(date.slice(8)) }}日 · {{ new Date(`${date}T12:00:00`).toLocaleDateString('zh-CN', { weekday: 'long' }) }}</text><view class="home-header-actions">
+          <button role="button" class="icon-button" aria-label="搜索" @click="searchOpen = !searchOpen">
+            <fg-journal-icon name="search" />
+          </button><button role="button" class="icon-button" aria-label="提醒" @click="reminderOpen = true">
+            <fg-journal-icon name="bell" />
+          </button>
         </view>
       </view>
-      <view class="flex gap-1">
-        <button
-          v-if="mode === 'home'"
-          role="button"
-          class="icon-button"
-          aria-label="搜索"
-          @click="searchOpen = !searchOpen"
-        >
-          <fg-journal-icon name="search" />
-        </button><button
-          v-if="mode === 'home'"
-          role="button"
-          class="icon-button"
-          aria-label="提醒"
-          @click="reminderOpen = true"
-        >
-          <fg-journal-icon name="bell" />
-        </button><button
-          v-else
-          role="button"
-          class="icon-button"
-          aria-label="添加纪念日"
-          @click="
-            navigate({
-              url: '/pages/journal/event-edit',
-            })
-          "
-        >
-          <text class="text-7">+</text>
-        </button>
+      <view class="home-greeting">
+        把日子，过成回忆<text>。</text>
+      </view><view class="home-subtitle">
+        平凡的今天，也值得被记住。
       </view>
+    </view>
+    <view v-else class="journal-appbar events-appbar">
+      <view>
+        <view class="page-title">
+          值得纪念
+        </view><view class="eyebrow">
+          把重要的日子，放在心上
+        </view>
+      </view>
+      <button role="button" class="icon-button" aria-label="添加纪念日" @click="navigate({ url: '/pages/journal/event-edit' })">
+        <text class="text-7">+</text>
+      </button>
     </view>
     <view class="journal-content">
       <fg-record-filters v-if="mode === 'events'" v-model:tags="selectedTags" v-model:people="selectedPeople" compact minimal scope="event" />
@@ -159,17 +129,7 @@ async function samples() {
           清除
         </button>
       </view>
-      <view v-if="mode === 'home' && pinned && !keyword" class="warmbar">
-        <fg-journal-icon name="heart" /><text class="warm-copy">
-          {{ pinned.title }}，{{
-            !pinned.yearUnknown && daysBetween(pinned.date, date) >= 0 ? "已经" : "还有"
-          }}
-        </text><text class="warm-number">
-          {{
-            Math.abs(pinned.yearUnknown ? countdown(pinned, date) : daysBetween(pinned.date, date)).toLocaleString()
-          }}
-        </text><text>天</text>
-      </view>
+      <HomeFeatured v-if="mode === 'home' && featured && !keyword" :event="featured" :date="date" />
       <view v-if="!hasData" class="empty-welcome">
         <view class="empty-mark">
           记
@@ -203,18 +163,18 @@ async function samples() {
             mode === "home"
               ? keyword
                 ? "找到的日子"
-                : "将至"
+                : "即将如期"
               : events.every(event => countdown(event, date) >= 0) ? "即将到来" : "值得记得"
-          }}<text>{{ events.length }}{{ mode === 'events' ? '个纪念日' : '' }}</text><button
+          }}<text v-if="mode === 'events'">{{ events.length }}个纪念日</text><button
             v-if="mode === 'home'"
             role="button"
             class="text-button ml-auto"
             @click="switchTab({ url: '/pages/journal/events' })"
           >
-            全部纪念日 →
+            查看全部 →
           </button>
         </view>
-        <AnniversaryList :items="events" :summary="mode === 'home' && !keyword" />
+        <HomeUpcoming v-if="mode === 'home' && !keyword" :items="events" :date="date" /><AnniversaryList v-else :items="events" />
         <view v-if="!events.length" class="small-empty">
           {{
             keyword || selectedTags.length || selectedPeople.length
@@ -222,14 +182,9 @@ async function samples() {
               : "还没有将至的日子，给未来留一点期待吧。"
           }}
         </view>
-        <view v-if="mode === 'home' && !keyword" class="today-line">
-          <text />今天 · {{ Number(date.slice(5, 7)) }}月{{
-            Number(date.slice(8))
-          }}日<text />
-        </view>
         <template v-if="mode !== 'events'">
-          <view class="section-label">
-            {{ keyword ? "找到的手记" : "记得" }}<text>{{ notes.length }}</text><button role="button" class="text-button ml-auto" @click="switchTab({ url: '/pages/journal/notes' })">
+          <view class="section-label home-note-heading">
+            {{ keyword ? "找到的手记" : "留住今天" }}<button role="button" class="text-button ml-auto" @click="switchTab({ url: '/pages/journal/notes' })">
               全部手记 →
             </button>
           </view>
@@ -242,6 +197,9 @@ async function samples() {
             }}
           </view>
         </template>
+        <view v-if="mode === 'home' && !keyword" class="home-closing">
+          <view />慢慢过日子，好好记得<view />
+        </view>
       </template>
     </view>
     <view

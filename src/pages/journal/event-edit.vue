@@ -314,7 +314,7 @@ async function save() {
           </view>
         </picker><view class="settings-row">
           <fg-journal-icon name="star" /><text class="flex-1">
-            设为首页情感条
+            设为首页主卡
           </text><switch
             :checked="event.pinned"
             color="#b44232"
